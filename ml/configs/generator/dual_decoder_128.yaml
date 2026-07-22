@@ -1,0 +1,19 @@
+seed: 42
+resolution: 128
+batch_size: 16
+optimizer:
+  name: adam
+  learning_rate: 0.0001
+  betas: [0.5, 0.999]
+mixed_precision: true
+ema:
+  enabled: true
+  decay: 0.999
+losses:
+  pixel_l1: 1.0
+  ssim: 0.5
+  perceptual: 0.2
+  identity: 0.5
+  landmark_consistency: 0.2
+  mask: 0.1
+  total_variation: 0.05

@@ -1,0 +1,8 @@
+seed: 42
+model:
+  name: fcos_face_lite
+  input_size: 640
+training:
+  batch_size: 16
+  max_steps: 50000
+  learning_rate: 0.0001

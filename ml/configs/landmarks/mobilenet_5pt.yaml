@@ -1,0 +1,9 @@
+seed: 42
+model:
+  name: landmark_mnv3_5pt
+  input_size: 128
+  points: 5
+training:
+  batch_size: 64
+  max_steps: 30000
+  learning_rate: 0.0001

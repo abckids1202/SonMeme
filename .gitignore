@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Builds and coverage
+dist/
+build/
+htmlcov/
+coverage/
+.coverage
+playwright-report/
+test-results/
+
+# Runtime image storage
+backend/runtime/
+data/raw/*
+data/interim/*
+data/processed/*
+data/splits/*
+!data/README.md
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/splits/.gitkeep
+
+# Large model artifacts
+backend/checkpoints/*
+models/pytorch/*
+models/onnx/*
+!backend/checkpoints/.gitkeep
+!models/pytorch/.gitkeep
+!models/onnx/.gitkeep
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
