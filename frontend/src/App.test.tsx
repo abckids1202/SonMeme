@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import App from './App'
 
 describe('App', () => {
-  it('renders the generator shell', () => {
+  it('renders the focused empty generator state', () => {
     const client = new QueryClient()
 
     render(
@@ -13,8 +13,8 @@ describe('App', () => {
       </QueryClientProvider>,
     )
 
-    expect(screen.getByRole('heading', { name: 'Sonify' })).toBeInTheDocument()
-    expect(screen.getByText('Upload a source image')).toBeInTheDocument()
-    expect(screen.getByText('Generate preview')).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Sonify Generator' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Turn someone into “son 😭”' })).toBeInTheDocument()
+    expect(screen.getByText('Drop an image here')).toBeInTheDocument()
   })
 })

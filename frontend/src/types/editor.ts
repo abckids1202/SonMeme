@@ -10,13 +10,36 @@ export type EditorStatus =
   | 'COMPLETE'
   | 'ERROR'
 
+export type ImageLoadState = 'idle' | 'reading' | 'decoding' | 'ready' | 'error'
+
 export type TransformMode = 'classical' | 'neural' | 'cutout'
+
+export type EditorMode = 'replace-detected-face' | 'manual-face-region' | 'free-cutout'
+
+export type ActiveTool = 'select' | 'face' | 'manual-region' | 'text' | 'emoji' | 'cutout' | 'pan'
+
+export type NormalizedPoint = {
+  x: number
+  y: number
+}
+
+export type NormalizedBox = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
 
 export type DetectedFace = {
   id: string
-  box: { x: number; y: number; width: number; height: number }
+  bbox: NormalizedBox
   confidence: number
-  source: 'manual' | 'custom-detector' | 'external-baseline'
+  source: 'mock' | 'manual' | 'custom-detector' | 'external-baseline'
+  pose?: {
+    yaw: number
+    pitch: number
+    roll: number
+  }
 }
 
 export type CaptionState = {
@@ -27,6 +50,18 @@ export type CaptionState = {
   rotation: number
   strokeWidth: number
   visible: boolean
+  manuallyPlaced: boolean
+}
+
+export type EmojiState = {
+  value: 'crying' | 'sob' | 'skull'
+  x: number
+  y: number
+  size: number
+  rotation: number
+  opacity: number
+  visible: boolean
+  groupedWithCaption: boolean
 }
 
 export type FaceTransformState = {
@@ -40,6 +75,19 @@ export type FaceTransformState = {
   colorMatchStrength: number
 }
 
+export type ViewportState = {
+  zoom: number
+  panX: number
+  panY: number
+}
+
+export type ImageFileMeta = {
+  name: string
+  size: number
+  type: string
+  orientation: 'browser-corrected' | 'unknown'
+}
+
 export type EditorState = {
   imageId: string | null
   originalUrl: string | null
@@ -47,11 +95,20 @@ export type EditorState = {
   finalUrl: string | null
   imageWidth: number
   imageHeight: number
+  imageLoadState: ImageLoadState
+  imageFile: ImageFileMeta | null
   faces: DetectedFace[]
   selectedFaceId: string | null
   mode: TransformMode
+  editorMode: EditorMode
+  activeTool: ActiveTool
   caption: CaptionState
+  emoji: EmojiState
   faceTransform: FaceTransformState
+  viewport: ViewportState
+  quickMode: 'quick' | 'advanced'
+  modelBadge: 'backend-disconnected' | 'mock-data' | 'external-baseline' | 'custom-detector'
+  selectedLayer: 'face' | 'caption' | 'emoji' | null
   status: EditorStatus
   error: string | null
 }
