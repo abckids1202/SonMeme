@@ -7,7 +7,7 @@ export function EmptyGeneratorState() {
       <section className="empty-card">
         <p className="eyebrow">Sonify</p>
         <h1>Turn someone into “son 😭”</h1>
-        <p className="empty-copy">Drop, browse, or paste an image. The editor keeps the canvas first and labels mock detector data clearly while the real detector is still training.</p>
+        <p className="empty-copy">Drop, browse or paste an image i guess</p>
         <ImageDropzone variant="hero" />
         <div className="example-strip" aria-label="Example image placeholders">
           <button type="button"><ImagePlus size={18} /> Portrait</button>
@@ -18,3 +18,4 @@ export function EmptyGeneratorState() {
     </main>
   )
 }
+
