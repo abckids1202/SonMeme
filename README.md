@@ -79,3 +79,43 @@ Sonify is for AI-edited parody images only. It handles still images, does not bu
 ## Known Limitations
 
 Milestone 1 is a foundation. Upload, detection, landmark inference, classical warping, and final image export are intentionally scheduled for later milestones.
+
+## Detector Training Quick Start
+
+The WIDER FACE detector pipeline is prepared under `ml/`. Full training is intentionally gated until you inspect generated previews and mark the dataset validated.
+
+PowerShell setup:
+
+```powershell
+cd "C:\Users\charl\OneDrive\Desktop\son"
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\setup_detector.ps1
+.\scripts\prepare_detector.ps1
+python -m ml.scripts.prepare_widerface --mark-validated
+.\scripts\train_detector_tiny.ps1
+.\scripts\train_detector_smoke.ps1
+.\scripts\train_detector_full.ps1
+```
+
+Command Prompt setup:
+
+```cmd
+cd /d C:\Users\charl\OneDrive\Desktop\son
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -r ml\requirements-detector.txt
+python -m ml.scripts.verify_widerface
+python -m ml.scripts.prepare_widerface
+python -m ml.scripts.visualize_widerface --split train --count 100
+python -m ml.scripts.visualize_widerface --split val --count 50
+python -m ml.scripts.inspect_batch --config ml/configs/detector/widerface_fcos_mnv3_640.yaml --batches 5
+python -m ml.scripts.prepare_widerface --mark-validated
+python -m ml.training.train_detector --config ml/configs/detector/widerface_fcos_mnv3_640.yaml --mode tiny-overfit
+```
+
+TensorBoard:
+
+```cmd
+tensorboard --logdir runs/detector
+```

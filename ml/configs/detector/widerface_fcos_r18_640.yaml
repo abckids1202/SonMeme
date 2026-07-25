@@ -1,0 +1,11 @@
+project:
+  name: sonify-face-detector
+  run_name: det_fcos_r18_640_experiment
+  seed: 42
+extends: widerface_fcos_mnv3_640.yaml
+model:
+  name: fcos_face_lite
+  backbone: resnet18
+  pretrained_backbone: true
+  fpn_channels: 128
+  feature_strides: [8, 16, 32]

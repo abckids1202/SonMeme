@@ -45,3 +45,21 @@ models/onnx/*
 Thumbs.db
 .idea/
 .vscode/
+
+# WIDER FACE and generated dataset files
+data/raw/
+data/processed/
+data/application_eval/sonify_faces/*
+!data/application_eval/sonify_faces/README.md
+
+# Detector outputs
+models/detector/checkpoints/
+models/detector/best/
+models/detector/exports/
+runs/detector/
+
+# Python bytecode and logs
+*.pyc
+events.out.tfevents.*
+*.tmp
+*.log

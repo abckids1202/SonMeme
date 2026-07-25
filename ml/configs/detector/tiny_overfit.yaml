@@ -1,0 +1,18 @@
+project:
+  name: sonify-face-detector
+  run_name: det_tiny_overfit_debug
+  seed: 42
+training:
+  epochs: 100
+  batch_size: 4
+  num_workers: 0
+  mixed_precision: false
+augmentation:
+  horizontal_flip_probability: 0.0
+  brightness_contrast_probability: 0.0
+  color_jitter_probability: 0.0
+  gaussian_blur_probability: 0.0
+  jpeg_compression_probability: 0.0
+  random_crop_probability: 0.0
+  small_rotation_probability: 0.0
+  synthetic_occlusion_probability: 0.0
