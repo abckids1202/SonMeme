@@ -1,3 +1,4 @@
+extends: widerface_fcos_mnv3_640.yaml
 project:
   name: sonify-face-detector
   run_name: det_tiny_overfit_debug
