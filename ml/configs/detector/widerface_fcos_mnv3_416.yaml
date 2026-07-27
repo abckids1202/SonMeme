@@ -1,0 +1,126 @@
+project:
+  name: sonify-face-detector
+  run_name: det_fcos_mnv3_416_gtx1650
+  seed: 42
+
+paths:
+  project_root: "C:/Users/charl/OneDrive/Desktop/son"
+  train_images: "C:/Users/charl/OneDrive/Desktop/son/data/raw/widerface/WIDER_train/WIDER_train/images"
+  val_images: "C:/Users/charl/OneDrive/Desktop/son/data/raw/widerface/WIDER_val/WIDER_val/images"
+  test_images: "C:/Users/charl/OneDrive/Desktop/son/data/raw/widerface/WIDER_test/WIDER_test/images"
+  annotations_dir: "C:/Users/charl/OneDrive/Desktop/son/data/raw/widerface/wider_face_annotations/wider_face_split"
+  train_annotations: "C:/Users/charl/OneDrive/Desktop/son/data/raw/widerface/wider_face_annotations/wider_face_split/wider_face_train_bbx_gt.txt"
+  val_annotations: "C:/Users/charl/OneDrive/Desktop/son/data/raw/widerface/wider_face_annotations/wider_face_split/wider_face_val_bbx_gt.txt"
+  processed_root: "C:/Users/charl/OneDrive/Desktop/son/data/processed/widerface"
+  checkpoint_root: "C:/Users/charl/OneDrive/Desktop/son/models/detector/checkpoints"
+  run_root: "C:/Users/charl/OneDrive/Desktop/son/runs/detector"
+
+dataset:
+  name: widerface
+  ignore_invalid_faces: true
+  retain_images_without_valid_faces: true
+  clip_boxes_to_image: true
+  minimum_box_width: 2
+  minimum_box_height: 2
+  cache_image_metadata: true
+
+input:
+  width: 416
+  height: 416
+  color_space: RGB
+  normalization: imagenet
+  letterbox: true
+  padding_value: 114
+
+model:
+  name: fcos_face_lite
+  backbone: mobilenet_v3_small
+  pretrained_backbone: true
+  fpn_channels: 128
+  num_classes: 1
+  feature_strides: [8, 16, 32]
+  regression_ranges:
+    - [0, 48]
+    - [48, 128]
+    - [128, 100000]
+  head_convolutions: 4
+  use_group_norm: true
+  group_norm_groups: 16
+
+assignment:
+  center_sampling: true
+  center_sampling_radius: 1.5
+  assign_smallest_box_on_overlap: true
+
+loss:
+  classification:
+    name: sigmoid_focal
+    alpha: 0.25
+    gamma: 2.0
+    weight: 1.0
+  regression:
+    name: giou
+    weight: 2.0
+  centerness:
+    name: binary_cross_entropy
+    weight: 1.0
+
+training:
+  epochs: 20
+  batch_size: 4
+  gradient_accumulation_steps: 2
+  num_workers: 2
+  pin_memory: true
+  persistent_workers: true
+  mixed_precision: true
+  gradient_clip_norm: 5.0
+  log_every_steps: 20
+  validate_every_epochs: 1
+  save_every_epochs: 1
+  keep_last_checkpoints: 5
+  early_stopping_patience: 6
+  freeze_backbone_epochs: 2
+
+optimizer:
+  name: adamw
+  learning_rate: 0.0003
+  weight_decay: 0.0001
+  betas: [0.9, 0.999]
+
+scheduler:
+  name: cosine
+  warmup_epochs: 2
+  minimum_learning_rate: 0.000001
+
+augmentation:
+  horizontal_flip_probability: 0.5
+  brightness_contrast_probability: 0.20
+  color_jitter_probability: 0.15
+  gaussian_blur_probability: 0.05
+  jpeg_compression_probability: 0.05
+  random_crop_probability: 0.15
+  small_rotation_probability: 0.05
+  maximum_rotation_degrees: 6
+  synthetic_occlusion_probability: 0.05
+  mosaic_probability: 0.0
+
+inference:
+  confidence_threshold: 0.35
+  nms_iou_threshold: 0.40
+  pre_nms_top_k: 1000
+  maximum_detections: 100
+
+evaluation:
+  iou_threshold: 0.50
+  application_confidence_threshold: 0.45
+  calculate_ap50: true
+  calculate_precision: true
+  calculate_recall: true
+  calculate_f1: true
+  calculate_size_recall: true
+  calculate_false_positives_per_image: true
+  prediction_preview_count: 20
+
+reproducibility:
+  deterministic: false
+  benchmark_cudnn: true
