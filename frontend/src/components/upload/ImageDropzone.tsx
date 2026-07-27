@@ -4,6 +4,7 @@ import { Clipboard, ImageUp } from 'lucide-react'
 import { uploadFileSchema } from '../../schemas/upload'
 import { useEditorStore } from '../../stores/editorStore'
 import { createMockFaces } from '../../utils/mockDetection'
+import { detectImage } from '../../api/detection'
 
 type ImageDropzoneProps = {
   variant?: 'hero' | 'compact'
@@ -63,6 +64,15 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
 
         if (import.meta.env.VITE_USE_MOCK_BACKEND === 'true') {
           setFaces(createMockFaces(width, height), 'mock-data')
+        } else {
+          setImageLoadState('ready')
+          setFaces([], 'backend-disconnected')
+          try {
+            const detection = await detectImage(file)
+            setFaces(detection.faces.map((face) => ({ ...face, source: 'custom-detector' as const })), 'custom-detector')
+          } catch (error) {
+            setError(error instanceof Error ? error.message : 'Face detection failed. Is the backend running?')
+          }
         }
       } catch {
         clearObjectUrl()

@@ -1,4 +1,5 @@
-# Sonify Application Face Evaluation Images
+# Sonify application evaluation set
 
-Place manually selected, permitted test images here when you want to inspect detector behavior on app-like inputs.
-Do not commit copyrighted, private, or scraped images.
+Put 30-50 representative images in this folder before running the prediction inspection command. Include clear portraits, groups, movie screenshots, reaction memes, text overlays, blur, dark scenes, side profiles, glasses, facial hair, occlusion, and images with no face.
+
+The folder is intentionally kept empty in Git so personal images are not uploaded.

@@ -18,4 +18,8 @@ Error responses use:
 }
 ```
 
-Upload, detection, generation, and export endpoints are planned for the next milestones.
+## `POST /api/v1/detection`
+
+Upload one JPEG, PNG, or WebP image as the `image` multipart field. The custom-trained FCOS detector returns normalized boxes for the React canvas and pixel boxes for debugging. The checkpoint is loaded once during FastAPI startup.
+
+The default runtime checkpoint is `models/detector/production/fcos_face_lite_416_v1.pt`; copy it from the completed training run as described in `models/detector/production/README.md`.

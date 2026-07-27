@@ -28,7 +28,8 @@ class Settings(BaseSettings):
     model_device: Literal["auto", "cpu", "cuda"] = "auto"
     model_runtime: Literal["pytorch", "onnx"] = "pytorch"
 
-    detector_model_path: Path = Path("../models/pytorch/face_detector.pt")
+    detector_model_path: Path = Path("models/detector/production/fcos_face_lite_416_v1.pt")
+    detector_config_path: Path = Path("ml/configs/detector/widerface_fcos_mnv3_416.yaml")
     landmark_model_path: Path = Path("../models/pytorch/landmark_model.pt")
     generator_model_path: Path = Path("../models/pytorch/identity_generator.pt")
 
@@ -44,7 +45,7 @@ class Settings(BaseSettings):
     max_image_height: int = 4096
     preview_max_side: int = 1280
 
-    detection_confidence_threshold: float = 0.45
+    detection_confidence_threshold: float = 0.35
     detection_nms_threshold: float = 0.40
     max_faces_per_image: int = 20
 

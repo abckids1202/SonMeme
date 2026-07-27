@@ -22,7 +22,7 @@ def nms(boxes: torch.Tensor, scores: torch.Tensor, iou_threshold: float) -> torc
     return torch.stack(keep) if keep else torch.empty((0,), dtype=torch.long, device=boxes.device)
 
 
-def decode_outputs(outputs, threshold=0.35, nms_iou=0.4, pre_nms_top_k=1000, max_detections=100, strides=(8, 16, 32)):
+def decode_outputs(outputs, threshold=0.35, nms_iou=0.4, pre_nms_top_k=1000, max_detections=100, strides=(8, 16, 32), image_size=640):
     predictions = []
     batch_size = outputs[0]["cls"].shape[0]
     for b in range(batch_size):
@@ -38,7 +38,7 @@ def decode_outputs(outputs, threshold=0.35, nms_iou=0.4, pre_nms_top_k=1000, max
             h, w = output["cls"].shape[-2:]
             loc = feature_locations(h, w, strides[level], output["cls"].device)
             reg = output["reg"][b].permute(1, 2, 0).reshape(-1, 4) * strides[level]
-            boxes = decode_regression(loc[mask], reg[mask]).clamp(min=0, max=640)
+            boxes = decode_regression(loc[mask], reg[mask]).clamp(min=0, max=image_size)
             score_values = scores[mask]
             if score_values.numel() > pre_nms_top_k:
                 top = score_values.topk(pre_nms_top_k).indices

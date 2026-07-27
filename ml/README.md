@@ -30,6 +30,12 @@ python -m ml.scripts.prepare_widerface
 python -m ml.scripts.visualize_widerface --split train --count 100
 python -m ml.scripts.visualize_widerface --split val --count 50
 python -m ml.scripts.inspect_batch --config ml/configs/detector/widerface_fcos_mnv3_640.yaml --batches 5
+
+After training, inspect real Sonify images:
+
+```cmd
+python -m ml.scripts.inspect_predictions --config ml/configs/detector/widerface_fcos_mnv3_416.yaml --checkpoint models/detector/production/fcos_face_lite_416_v1.pt --input-dir data/application_eval/sonify_faces --count 50
+```
 ```
 
 After manually inspecting `data/processed/widerface/previews`, mark validation:

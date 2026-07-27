@@ -6,6 +6,14 @@ from pathlib import Path
 from app.config import PROJECT_ROOT, Settings
 from app.schemas.health import ModelAvailability, ModelMetadata
 
+try:
+    import sys
+
+    sys.path.insert(0, str(PROJECT_ROOT.parent))
+    from ml.inference.detector import DetectorPredictor
+except ImportError:
+    DetectorPredictor = None  # type: ignore[assignment,misc]
+
 
 @dataclass
 class ModelRegistry:
@@ -13,17 +21,28 @@ class ModelRegistry:
     device: str = "cpu"
     runtime: str = "pytorch"
     loaded: bool = False
+    detector: object | None = None
 
     async def load(self) -> None:
         self.device = self._select_device()
         self.runtime = self.settings.model_runtime
+        checkpoint = self._resolve(self.settings.detector_model_path)
+        config = self._resolve(self.settings.detector_config_path)
+        if self.runtime == "pytorch" and DetectorPredictor and checkpoint.exists() and config.exists():
+            self.detector = DetectorPredictor(config, checkpoint, self.device)
         self.loaded = True
 
     async def warmup(self) -> None:
         return None
 
     async def close(self) -> None:
+        self.detector = None
         self.loaded = False
+
+    def detect(self, image, threshold: float | None = None) -> dict:
+        if self.detector is None:
+            raise RuntimeError("Custom detector checkpoint is not available")
+        return self.detector.predict(image, threshold=threshold)  # type: ignore[union-attr]
 
     def availability(self) -> ModelAvailability:
         return ModelAvailability(
@@ -57,4 +76,8 @@ class ModelRegistry:
 
     def _exists(self, pytorch_path: Path, onnx_path: Path) -> bool:
         candidate = onnx_path if self.settings.model_runtime == "onnx" else pytorch_path
-        return (PROJECT_ROOT / candidate).resolve().exists()
+        return self._resolve(candidate).exists()
+
+    @staticmethod
+    def _resolve(path: Path) -> Path:
+        return path if path.is_absolute() else (PROJECT_ROOT / path).resolve()

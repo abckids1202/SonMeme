@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.health import router as health_router
+from app.api.detection import router as detection_router
 from app.config import get_settings
 from app.lifespan import lifespan
 
@@ -19,6 +20,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(health_router, prefix="/api/v1")
+    app.include_router(detection_router, prefix="/api/v1")
     return app
 
 
