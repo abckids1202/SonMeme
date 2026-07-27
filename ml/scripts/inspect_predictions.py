@@ -17,6 +17,7 @@ def main() -> int:
     parser.add_argument("--split", choices=["train", "val"], default="val")
     parser.add_argument("--count", type=int, default=100)
     parser.add_argument("--input-dir")
+    parser.add_argument("--threshold", type=float, help="Override the configured confidence threshold")
     args = parser.parse_args()
     config = load_config(args.config)
     predictor = DetectorPredictor(args.config, args.checkpoint)
@@ -35,7 +36,7 @@ def main() -> int:
     report = []
     for image_path in image_paths:
         image = Image.open(image_path).convert("RGB")
-        prediction = predictor.predict(image)
+        prediction = predictor.predict(image, threshold=args.threshold)
         preview = image.copy()
         draw = ImageDraw.Draw(preview)
         for index, face in enumerate(prediction["faces"], start=1):
