@@ -95,6 +95,8 @@ export type EditorState = {
   finalUrl: string | null
   imageWidth: number
   imageHeight: number
+  sourceFaceUrl: string | null
+  sourceFaceName: string | null
   imageLoadState: ImageLoadState
   imageFile: ImageFileMeta | null
   faces: DetectedFace[]

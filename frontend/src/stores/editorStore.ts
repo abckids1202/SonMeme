@@ -12,6 +12,7 @@ import type {
   TransformMode,
   ViewportState,
 } from '../types/editor'
+import anthonyFaceUrl from '../assets/anthony-mackie-face.png'
 
 const defaultCaption: CaptionState = {
   text: 'son',
@@ -57,6 +58,7 @@ type EditorActions = {
   setError: (error: string | null) => void
   setImageLoadState: (state: EditorState['imageLoadState']) => void
   setUploadedImage: (input: { url: string; width: number; height: number; file: ImageFileMeta }) => void
+  setSourceFace: (input: { url: string; name: string }) => void
   setFaces: (faces: DetectedFace[], badge?: EditorState['modelBadge']) => void
   selectFace: (faceId: string | null) => void
   setMode: (mode: TransformMode) => void
@@ -81,6 +83,8 @@ const initialState: EditorState = {
   finalUrl: null,
   imageWidth: 0,
   imageHeight: 0,
+  sourceFaceUrl: anthonyFaceUrl,
+  sourceFaceName: 'Anthony Mackie',
   imageLoadState: 'idle',
   imageFile: null,
   faces: [],
@@ -123,6 +127,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
       status: 'FACE_SELECTION',
       error: null,
     }),
+  setSourceFace: ({ url, name }) => set({ sourceFaceUrl: url, sourceFaceName: name }),
   setFaces: (faces, badge) =>
     set({
       faces,

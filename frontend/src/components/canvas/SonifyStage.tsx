@@ -16,6 +16,7 @@ export function SonifyStage() {
   const originalUrl = useEditorStore((state) => state.originalUrl)
   const imageWidth = useEditorStore((state) => state.imageWidth)
   const imageHeight = useEditorStore((state) => state.imageHeight)
+  const sourceFaceUrl = useEditorStore((state) => state.sourceFaceUrl)
   const imageLoadState = useEditorStore((state) => state.imageLoadState)
   const faces = useEditorStore((state) => state.faces)
   const selectedFaceId = useEditorStore((state) => state.selectedFaceId)
@@ -27,8 +28,10 @@ export function SonifyStage() {
   const selectFace = useEditorStore((state) => state.selectFace)
   const updateCaption = useEditorStore((state) => state.updateCaption)
   const updateEmoji = useEditorStore((state) => state.updateEmoji)
+  const transform = useEditorStore((state) => state.faceTransform)
   const setViewport = useEditorStore((state) => state.setViewport)
   const image = useKonvaImage(originalUrl)
+  const sourceFaceImage = useKonvaImage(sourceFaceUrl)
 
   const imageRect = useMemo(
     () => fitImageToStage({ width: imageWidth, height: imageHeight }, stageSize, 34),
@@ -37,6 +40,16 @@ export function SonifyStage() {
 
   const captionPoint = imageToStagePoint({ x: caption.x, y: caption.y }, imageRect, viewport)
   const emojiPoint = imageToStagePoint({ x: emoji.x, y: emoji.y }, imageRect, viewport)
+  const selectedFace = faces.find((face) => face.id === selectedFaceId)
+  const targetRect = selectedFace ? bboxToStageRect(selectedFace.bbox, imageRect, viewport) : null
+  const overlayRect = targetRect
+    ? {
+        x: targetRect.x + targetRect.width * transform.offsetX,
+        y: targetRect.y + targetRect.height * transform.offsetY,
+        width: targetRect.width * transform.scale,
+        height: targetRect.height * transform.scale,
+      }
+    : null
 
   return (
     <section className="canvas-panel" aria-label="Sonify canvas editor">
@@ -97,6 +110,33 @@ export function SonifyStage() {
               </Group>
             )
           })}
+        </Layer>
+        <Layer name="replacementLayer">
+          {sourceFaceImage && targetRect && overlayRect ? (
+            <Group
+              clipFunc={(context) => {
+                const expansion = transform.maskExpansion / 100
+                const x = targetRect.x - targetRect.width * expansion
+                const y = targetRect.y - targetRect.height * expansion
+                const width = targetRect.width * (1 + expansion * 2)
+                const height = targetRect.height * (1 + expansion * 2)
+                context.beginPath()
+                context.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2)
+                context.closePath()
+              }}
+            >
+              <KonvaImage
+                image={sourceFaceImage}
+                x={overlayRect.x}
+                y={overlayRect.y}
+                width={overlayRect.width}
+                height={overlayRect.height}
+                rotation={transform.rotation}
+                opacity={transform.blendStrength}
+                listening={false}
+              />
+            </Group>
+          ) : null}
         </Layer>
         <Layer name="textLayer">
           {caption.visible ? (

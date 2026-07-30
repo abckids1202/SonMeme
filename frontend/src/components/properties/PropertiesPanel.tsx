@@ -1,4 +1,5 @@
-import { ScanFace, SlidersHorizontal, Type } from 'lucide-react'
+import { ImagePlus, ScanFace, SlidersHorizontal, Type } from 'lucide-react'
+import { useRef } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 
 export function PropertiesPanel() {
@@ -16,6 +17,10 @@ export function PropertiesPanel() {
   const setFaces = useEditorStore((state) => state.setFaces)
   const imageWidth = useEditorStore((state) => state.imageWidth)
   const imageHeight = useEditorStore((state) => state.imageHeight)
+  const sourceFaceUrl = useEditorStore((state) => state.sourceFaceUrl)
+  const sourceFaceName = useEditorStore((state) => state.sourceFaceName)
+  const setSourceFace = useEditorStore((state) => state.setSourceFace)
+  const sourceInputRef = useRef<HTMLInputElement>(null)
 
   const selectedFace = faces.find((face) => face.id === selectedFaceId)
 
@@ -49,7 +54,7 @@ export function PropertiesPanel() {
           {selectedFace ? (
             <>
               <p className="muted-copy">Face {faces.indexOf(selectedFace) + 1} · {Math.round(selectedFace.confidence * 100)}% confidence · {selectedFace.source}</p>
-              <button type="button" className="button primary full-width">Replace this face</button>
+              <button type="button" className="button primary full-width" onClick={() => useEditorStore.getState().selectLayer('face')}>Replace this face</button>
             </>
           ) : (
             <>
@@ -60,6 +65,27 @@ export function PropertiesPanel() {
         </section>
       )}
 
+      <section className="property-section source-face-section">
+        <div className="panel-heading"><ImagePlus size={18} /><h2>Face source</h2></div>
+        <div className="source-face-preview">
+          {sourceFaceUrl ? <img src={sourceFaceUrl} alt="Selected face source" /> : <span>No source</span>}
+          <div><strong>{sourceFaceName ?? 'No source selected'}</strong><small>Clipped to the selected target face</small></div>
+        </div>
+        <input
+          ref={sourceInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            if (file) setSourceFace({ url: URL.createObjectURL(file), name: file.name })
+          }}
+        />
+        <button type="button" className="button secondary full-width" onClick={() => sourceInputRef.current?.click()}>
+          <ImagePlus size={16} /> Choose another face image
+        </button>
+      </section>
+
       <section className="property-section">
         <div className="panel-heading"><SlidersHorizontal size={18} /><h2>Replacement</h2></div>
         <label className="field"><span>Blend strength</span><input type="range" min="0" max="1" step="0.01" value={transform.blendStrength} onChange={(event) => updateTransform({ blendStrength: Number(event.target.value) })} /></label>
@@ -69,6 +95,8 @@ export function PropertiesPanel() {
             <label className="field"><span>X offset</span><input type="range" min="-0.35" max="0.35" step="0.01" value={transform.offsetX} onChange={(event) => updateTransform({ offsetX: Number(event.target.value) })} /></label>
             <label className="field"><span>Y offset</span><input type="range" min="-0.35" max="0.35" step="0.01" value={transform.offsetY} onChange={(event) => updateTransform({ offsetY: Number(event.target.value) })} /></label>
             <label className="field"><span>Mask feathering</span><input type="number" min="0" max="80" value={transform.feathering} onChange={(event) => updateTransform({ feathering: Number(event.target.value) })} /></label>
+            <label className="field"><span>Mask expansion</span><input type="range" min="0" max="24" value={transform.maskExpansion} onChange={(event) => updateTransform({ maskExpansion: Number(event.target.value) })} /></label>
+            <label className="field"><span>Rotation</span><input type="range" min="-30" max="30" value={transform.rotation} onChange={(event) => updateTransform({ rotation: Number(event.target.value) })} /></label>
           </>
         ) : null}
       </section>

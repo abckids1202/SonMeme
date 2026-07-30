@@ -332,6 +332,36 @@ h2 {
   border-top: 1px solid #303138;
 }
 
+.source-face-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 12px;
+  min-width: 0;
+}
+
+.source-face-preview img {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #ffd166;
+}
+
+.source-face-preview div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.source-face-preview strong,
+.source-face-preview small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .property-section:first-of-type {
   border-top: 0;
   padding-top: 0;
