@@ -1,5 +1,5 @@
-import { Circle, Group, Image as KonvaImage, Label, Layer, Rect, Stage, Tag, Text, Transformer } from 'react-konva'
-import { useMemo } from 'react'
+import { Circle, Group, Image as KonvaImage, Label, Layer, Line, Rect, Stage, Tag, Text, Transformer } from 'react-konva'
+import { useMemo, useRef, useState } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 import { bboxToStageRect, fitImageToStage, imageToStagePoint, zoomAtPoint } from '../../utils/coordinates'
 import { useKonvaImage } from './useKonvaImage'
@@ -29,7 +29,12 @@ export function SonifyStage() {
   const updateCaption = useEditorStore((state) => state.updateCaption)
   const updateEmoji = useEditorStore((state) => state.updateEmoji)
   const transform = useEditorStore((state) => state.faceTransform)
+  const updateTransform = useEditorStore((state) => state.updateTransform)
+  const setFaceMask = useEditorStore((state) => state.setFaceMask)
+  const activeTool = useEditorStore((state) => state.activeTool)
   const setViewport = useEditorStore((state) => state.setViewport)
+  const replacementRef = useRef<any>(null)
+  const [lassoPoints, setLassoPoints] = useState<number[]>([])
   const image = useKonvaImage(originalUrl)
   const sourceFaceImage = useKonvaImage(sourceFaceUrl)
 
@@ -50,6 +55,9 @@ export function SonifyStage() {
         height: targetRect.height * transform.scale,
       }
     : null
+  const maskLinePoints = targetRect && transform.maskPoints.length > 2
+    ? transform.maskPoints.flatMap((point) => [targetRect.x + point.x * targetRect.width, targetRect.y + point.y * targetRect.height])
+    : []
 
   return (
     <section className="canvas-panel" aria-label="Sonify canvas editor">
@@ -64,7 +72,32 @@ export function SonifyStage() {
         height={stageSize.height}
         className="sonify-stage"
         onMouseDown={(event) => {
+          if (activeTool === 'manual-region' && targetRect) {
+            const point = event.target.getStage()?.getPointerPosition()
+            if (point) setLassoPoints([point.x, point.y])
+            return
+          }
           if (event.target === event.target.getStage()) selectLayer(null)
+        }}
+        onMouseMove={(event) => {
+          if (activeTool === 'manual-region' && lassoPoints.length) {
+            const point = event.target.getStage()?.getPointerPosition()
+            if (point) setLassoPoints((current) => [...current, point.x, point.y])
+          }
+        }}
+        onMouseUp={(event) => {
+          if (activeTool !== 'manual-region' || lassoPoints.length < 4 || !targetRect) return
+          const point = event.target.getStage()?.getPointerPosition()
+          const points = point ? [...lassoPoints, point.x, point.y] : lassoPoints
+          const normalized = []
+          for (let index = 0; index < points.length - 1; index += 2) {
+            normalized.push({
+              x: Math.max(0, Math.min(1, (points[index] - targetRect.x) / targetRect.width)),
+              y: Math.max(0, Math.min(1, (points[index + 1] - targetRect.y) / targetRect.height)),
+            })
+          }
+          if (normalized.length >= 3) setFaceMask(normalized)
+          setLassoPoints([])
         }}
         onWheel={(event) => {
           event.evt.preventDefault()
@@ -114,15 +147,37 @@ export function SonifyStage() {
         <Layer name="replacementLayer">
           {sourceFaceImage && targetRect && overlayRect ? (
             <Group
+              ref={replacementRef}
+              draggable={activeTool === 'select' && selectedLayer === 'face'}
+              onClick={() => selectLayer('face')}
+              onTap={() => selectLayer('face')}
+              onDragEnd={(event) => updateTransform({ offsetX: transform.offsetX + (event.target.x() - overlayRect.x) / targetRect.width, offsetY: transform.offsetY + (event.target.y() - overlayRect.y) / targetRect.height })}
+              onTransformEnd={(event) => {
+                const node = event.target
+                updateTransform({ scale: Math.max(0.2, transform.scale * node.scaleX()), rotation: node.rotation() })
+                node.scaleX(1)
+                node.scaleY(1)
+              }}
               clipFunc={(context) => {
                 const expansion = transform.maskExpansion / 100
                 const x = targetRect.x - targetRect.width * expansion
                 const y = targetRect.y - targetRect.height * expansion
                 const width = targetRect.width * (1 + expansion * 2)
                 const height = targetRect.height * (1 + expansion * 2)
-                context.beginPath()
-                context.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2)
-                context.closePath()
+                if (transform.maskPoints.length > 2) {
+                  context.beginPath()
+                  transform.maskPoints.forEach((point, index) => {
+                    const px = targetRect.x + point.x * targetRect.width
+                    const py = targetRect.y + point.y * targetRect.height
+                    if (index === 0) context.moveTo(px, py)
+                    else context.lineTo(px, py)
+                  })
+                  context.closePath()
+                } else {
+                  context.beginPath()
+                  context.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2)
+                  context.closePath()
+                }
               }}
             >
               <KonvaImage
@@ -137,6 +192,8 @@ export function SonifyStage() {
               />
             </Group>
           ) : null}
+          {maskLinePoints.length > 2 ? <Line points={maskLinePoints} closed stroke="#ffd166" dash={[6, 4]} listening={false} /> : null}
+          {lassoPoints.length > 2 ? <Line points={lassoPoints} stroke="#ffd166" dash={[6, 4]} listening={false} /> : null}
         </Layer>
         <Layer name="textLayer">
           {caption.visible ? (
@@ -199,6 +256,7 @@ export function SonifyStage() {
         </Layer>
         <Layer name="selectionLayer">
           {selectedLayer === 'caption' ? <Transformer nodes={[]} rotateEnabled keepRatio enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']} /> : null}
+          {selectedLayer === 'face' && replacementRef.current ? <Transformer nodes={[replacementRef.current]} rotateEnabled keepRatio enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']} /> : null}
         </Layer>
       </Stage>
     </section>

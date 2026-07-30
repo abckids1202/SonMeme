@@ -73,6 +73,7 @@ export type FaceTransformState = {
   maskExpansion: number
   feathering: number
   colorMatchStrength: number
+  maskPoints: NormalizedPoint[]
 }
 
 export type ViewportState = {

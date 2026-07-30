@@ -45,6 +45,7 @@ const defaultTransform: FaceTransformState = {
   maskExpansion: 8,
   feathering: 14,
   colorMatchStrength: 0.65,
+  maskPoints: [],
 }
 
 const defaultViewport: ViewportState = {
@@ -68,6 +69,8 @@ type EditorActions = {
   updateCaption: (caption: Partial<CaptionState>) => void
   updateEmoji: (emoji: Partial<EmojiState>) => void
   updateTransform: (transform: Partial<FaceTransformState>) => void
+  setFaceMask: (points: FaceTransformState['maskPoints']) => void
+  clearFaceMask: () => void
   setViewport: (viewport: Partial<ViewportState>) => void
   resetView: () => void
   setQuickMode: (mode: EditorState['quickMode']) => void
@@ -144,6 +147,8 @@ export const useEditorStore = create<EditorStore>((set) => ({
   updateCaption: (caption) => set((state) => ({ caption: { ...state.caption, ...caption } })),
   updateEmoji: (emoji) => set((state) => ({ emoji: { ...state.emoji, ...emoji } })),
   updateTransform: (transform) => set((state) => ({ faceTransform: { ...state.faceTransform, ...transform } })),
+  setFaceMask: (maskPoints) => set((state) => ({ faceTransform: { ...state.faceTransform, maskPoints } })),
+  clearFaceMask: () => set((state) => ({ faceTransform: { ...state.faceTransform, maskPoints: [] } })),
   setViewport: (viewport) => set((state) => ({ viewport: { ...state.viewport, ...viewport } })),
   resetView: () => set({ viewport: defaultViewport }),
   setQuickMode: (quickMode) => {

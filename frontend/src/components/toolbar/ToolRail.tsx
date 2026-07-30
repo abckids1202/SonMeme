@@ -1,4 +1,4 @@
-import { Hand, Image, MousePointer2, ScanFace, SmilePlus, SquareDashedMousePointer, Type } from 'lucide-react'
+import { Hand, Image, Lasso, MousePointer2, ScanFace, SmilePlus, Type } from 'lucide-react'
 import { useEffect } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 import type { ActiveTool } from '../../types/editor'
@@ -7,7 +7,7 @@ import { ToolButton } from './ToolButton'
 const tools = [
   { tool: 'select', label: 'Select', shortcut: 'V', icon: MousePointer2 },
   { tool: 'face', label: 'Face Target', shortcut: 'F', icon: ScanFace },
-  { tool: 'manual-region', label: 'Manual Region', shortcut: 'R', icon: SquareDashedMousePointer },
+  { tool: 'manual-region', label: 'Lasso mask', shortcut: 'R', icon: Lasso },
   { tool: 'text', label: 'Text', shortcut: 'T', icon: Type },
   { tool: 'emoji', label: 'Emoji', shortcut: 'E', icon: SmilePlus },
   { tool: 'cutout', label: 'Cutout', shortcut: 'C', icon: Image },

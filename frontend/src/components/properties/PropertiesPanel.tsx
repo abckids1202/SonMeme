@@ -1,4 +1,4 @@
-import { ImagePlus, ScanFace, SlidersHorizontal, Type } from 'lucide-react'
+import { Eraser, ImagePlus, ScanFace, SlidersHorizontal, Type } from 'lucide-react'
 import { useRef } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 
@@ -14,6 +14,9 @@ export function PropertiesPanel() {
   const updateCaption = useEditorStore((state) => state.updateCaption)
   const updateEmoji = useEditorStore((state) => state.updateEmoji)
   const updateTransform = useEditorStore((state) => state.updateTransform)
+  const setActiveTool = useEditorStore((state) => state.setActiveTool)
+  const clearFaceMask = useEditorStore((state) => state.clearFaceMask)
+  const maskPoints = useEditorStore((state) => state.faceTransform.maskPoints)
   const setFaces = useEditorStore((state) => state.setFaces)
   const imageWidth = useEditorStore((state) => state.imageWidth)
   const imageHeight = useEditorStore((state) => state.imageHeight)
@@ -97,6 +100,8 @@ export function PropertiesPanel() {
             <label className="field"><span>Mask feathering</span><input type="number" min="0" max="80" value={transform.feathering} onChange={(event) => updateTransform({ feathering: Number(event.target.value) })} /></label>
             <label className="field"><span>Mask expansion</span><input type="range" min="0" max="24" value={transform.maskExpansion} onChange={(event) => updateTransform({ maskExpansion: Number(event.target.value) })} /></label>
             <label className="field"><span>Rotation</span><input type="range" min="-30" max="30" value={transform.rotation} onChange={(event) => updateTransform({ rotation: Number(event.target.value) })} /></label>
+            <button type="button" className="button secondary full-width" onClick={() => setActiveTool('manual-region')}><Eraser size={16} /> {maskPoints.length > 2 ? 'Redraw lasso mask' : 'Draw lasso mask'}</button>
+            {maskPoints.length > 2 ? <button type="button" className="button ghost full-width" onClick={clearFaceMask}>Clear lasso mask</button> : null}
           </>
         ) : null}
       </section>
