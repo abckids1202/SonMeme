@@ -20,6 +20,8 @@ async function readImageDimensions(url: string): Promise<{ width: number; height
 
 export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
   const objectUrlRef = useRef<string | null>(null)
+  const uploadSequenceRef = useRef(0)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const setUploadedImage = useEditorStore((state) => state.setUploadedImage)
   const setImageLoadState = useEditorStore((state) => state.setImageLoadState)
   const setFaces = useEditorStore((state) => state.setFaces)
@@ -36,6 +38,10 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
 
   const acceptFile = useCallback(
     async (file: File) => {
+      const sequence = ++uploadSequenceRef.current
+      abortControllerRef.current?.abort()
+      const controller = new AbortController()
+      abortControllerRef.current = controller
       const parsed = uploadFileSchema.safeParse(file)
       if (!parsed.success) {
         setError(parsed.error.issues[0]?.message ?? 'Unsupported file.')
@@ -50,6 +56,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
       try {
         setImageLoadState('decoding')
         const { width, height } = await readImageDimensions(url)
+        if (sequence !== uploadSequenceRef.current || controller.signal.aborted) return
         setUploadedImage({
           url,
           width,
@@ -69,6 +76,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
           setFaces([], 'backend-disconnected')
           try {
             const detection = await detectImage(file)
+            if (sequence !== uploadSequenceRef.current || controller.signal.aborted) return
             setFaces(detection.faces.map((face) => ({ ...face, source: 'custom-detector' as const })), 'custom-detector')
           } catch (error) {
             setError(error instanceof Error ? error.message : 'Face detection failed. Is the backend running?')
@@ -105,7 +113,10 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
 
   return (
     <section {...getRootProps()} className={isDragActive ? `image-dropzone ${variant} active` : `image-dropzone ${variant}`}>
-      <input {...getInputProps()} aria-label="Upload source image" />
+      {(() => {
+        const inputProps = getInputProps()
+        return <input {...inputProps} onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) void acceptFile(file); event.currentTarget.value = '' }} aria-label="Upload source image" />
+      })()}
       <ImageUp size={variant === 'hero' ? 34 : 20} aria-hidden="true" />
       <div>
         <h2>{variant === 'hero' ? 'Drop an image here' : 'Replace source image'}</h2>
