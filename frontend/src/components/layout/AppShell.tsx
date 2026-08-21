@@ -1,28 +1,18 @@
 import { NavLink } from 'react-router-dom'
-import { FlaskConical, ImagePlus, Microscope, RadioTower } from 'lucide-react'
+import { ImagePlus, Lightbulb } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
-import { downloadComposition } from '../../utils/exportComposition'
+import { ExportModal } from '../export/ExportModal'
 
 const links = [
   { to: '/', label: 'Generator', icon: ImagePlus },
-  { to: '/model-lab', label: 'Model Lab', icon: Microscope },
-  { to: '/methodology', label: 'Methodology', icon: FlaskConical },
+  { to: '/ideal', label: 'Ideal', icon: Lightbulb },
 ]
 
-const badgeLabels = {
-  'backend-disconnected': 'Backend disconnected',
-  'mock-data': 'Mock data',
-  'external-baseline': 'External baseline',
-  'custom-detector': 'Custom detector',
-  'production-detector': 'Production face analysis',
-  manual: 'Manual region',
-}
-
 export function AppShell({ children }: PropsWithChildren) {
-  const modelBadge = useEditorStore((state) => state.modelBadge)
   const reset = useEditorStore((state) => state.reset)
   const hasImage = useEditorStore((state) => Boolean(state.originalUrl))
+  const setExportModalOpen = useEditorStore((state) => state.setExportModalOpen)
 
   return (
     <div className="app-shell">
@@ -39,19 +29,16 @@ export function AppShell({ children }: PropsWithChildren) {
           ))}
         </nav>
         <div className="topbar-actions">
-          <span className={`model-pill ${modelBadge}`}>
-            <RadioTower size={15} aria-hidden="true" />
-            {badgeLabels[modelBadge]}
-          </span>
           <button type="button" className="button secondary compact-button" onClick={reset} disabled={!hasImage}>
             Reset
           </button>
-          <button type="button" className="button primary compact-button" disabled={!hasImage} onClick={() => void downloadComposition(useEditorStore.getState())}>
+          <button type="button" className="button primary compact-button" disabled={!hasImage} onClick={() => setExportModalOpen(true)}>
             Export
           </button>
         </div>
       </header>
       {children}
+      <ExportModal />
     </div>
   )
 }

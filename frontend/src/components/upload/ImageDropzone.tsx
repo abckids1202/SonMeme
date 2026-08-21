@@ -81,7 +81,11 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
             if (sequence !== uploadSequenceRef.current || controller.signal.aborted) return
             setImageDimensions(detection.imageWidth, detection.imageHeight)
             const source = detection.model.production ? 'external-baseline' as const : 'custom-detector' as const
-            setFaces(detection.faces.map((face) => ({ ...face, source })), detection.model.production ? 'production-detector' : 'custom-detector')
+            setFaces(detection.faces.map((face) => ({
+              ...face,
+              landmarks: Object.fromEntries(Object.entries(face.landmarks ?? {}).map(([key, point]) => [key, { x: point[0], y: point[1] }])),
+              source,
+            })), detection.model.production ? 'production-detector' : 'custom-detector')
           } catch (error) {
             if (controller.signal.aborted || sequence !== uploadSequenceRef.current) return
             setError(error instanceof Error ? error.message : 'Face detection failed. Is the backend running?')

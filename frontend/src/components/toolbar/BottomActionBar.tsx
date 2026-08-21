@@ -1,6 +1,6 @@
 import { Download, Maximize, Minus, Plus, RotateCcw, Wand2 } from 'lucide-react'
 import { useEditorStore } from '../../stores/editorStore'
-import { downloadComposition, renderComposition } from '../../utils/exportComposition'
+import { renderComposition } from '../../utils/exportCompositionV2'
 
 export function BottomActionBar() {
   const viewport = useEditorStore((state) => state.viewport)
@@ -11,6 +11,7 @@ export function BottomActionBar() {
   const modelBadge = useEditorStore((state) => state.modelBadge)
   const setPreviewUrl = useEditorStore((state) => state.setPreviewUrl)
   const setStatus = useEditorStore((state) => state.setStatus)
+  const setExportModalOpen = useEditorStore((state) => state.setExportModalOpen)
   const setActiveTool = useEditorStore((state) => state.setActiveTool)
   const status = useEditorStore((state) => state.status)
 
@@ -21,15 +22,6 @@ export function BottomActionBar() {
       const blob = await renderComposition(useEditorStore.getState())
       setPreviewUrl(URL.createObjectURL(blob))
       setStatus('PREVIEW_READY')
-    } catch {
-      setStatus('ERROR')
-    }
-  }
-  const exportImage = async () => {
-    setStatus('GENERATING_FINAL')
-    try {
-      await downloadComposition(useEditorStore.getState())
-      setStatus('COMPLETE')
     } catch {
       setStatus('ERROR')
     }
@@ -57,7 +49,7 @@ export function BottomActionBar() {
         <span className="disabled-reason">{disabledReason || ({ READY_TO_GENERATE: 'Ready to sonify', GENERATING_PREVIEW: 'Building preview…', PREVIEW_READY: 'Preview ready', COMPLETE: 'Exported PNG ready', ERROR: 'Something went wrong' } as Record<string, string>)[status] || 'Ready'}</span>
         {modelBadge === 'backend-disconnected' && hasImage ? <button type="button" className="button secondary" onClick={() => setActiveTool('manual-region')}>Draw manual region</button> : null}
         <button type="button" className="button primary" disabled={Boolean(disabledReason)} onClick={() => void generatePreview()}><Wand2 size={17} /> Sonify</button>
-        <button type="button" className="button secondary" disabled={!hasImage} onClick={() => void exportImage()}><Download size={17} /> Export</button>
+        <button type="button" className="button secondary" disabled={!hasImage} onClick={() => setExportModalOpen(true)}><Download size={17} /> Export</button>
       </div>
     </footer>
   )

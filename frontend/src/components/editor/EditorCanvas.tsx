@@ -1,4 +1,4 @@
-import { SonifyStage } from '../canvas/SonifyStage'
+import { SonifyStageMesh as SonifyStage } from '../canvas/SonifyStageMesh'
 
 export function EditorCanvas() {
   return <SonifyStage />

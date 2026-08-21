@@ -1,5 +1,5 @@
 import { CompactFileBar } from './CompactFileBar'
-import { SonifyStage } from '../canvas/SonifyStage'
+import { SonifyStageMesh as SonifyStage } from '../canvas/SonifyStageMesh'
 import { ToolRail } from '../toolbar/ToolRail'
 import { PropertiesPanel } from '../properties/PropertiesPanel'
 import { BottomActionBar } from '../toolbar/BottomActionBar'

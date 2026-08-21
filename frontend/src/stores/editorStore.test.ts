@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { useEditorStore } from './editorStore'
 
 describe('editor store', () => {
-  it('uses text and emoji as separate editable defaults', () => {
+  it('keeps the meme caption canonical', () => {
     useEditorStore.getState().reset()
 
-    expect(useEditorStore.getState().caption.text).toBe('son')
-    expect(useEditorStore.getState().emoji.value).toBe('crying')
+    expect(useEditorStore.getState().caption.text).toBe('son 😭')
+    expect(useEditorStore.getState().caption.scale).toBe(1)
   })
 
   it('auto-selects a single detected face', () => {
@@ -37,5 +37,15 @@ describe('editor store', () => {
 
     expect(useEditorStore.getState().faces).toEqual([])
     expect(useEditorStore.getState().selectedFaceId).toBeNull()
+  })
+
+  it('resets a deformed mesh without moving the layer', () => {
+    useEditorStore.getState().updateMeshPoint(5, { targetX: 0.9, targetY: 0.2 })
+    useEditorStore.getState().updateSonFace({ x: 0.2, y: 0.2 })
+    useEditorStore.getState().resetSonFaceShape()
+
+    const mesh = useEditorStore.getState().sonFace.mesh
+    expect(mesh[5].targetX).toBe(mesh[5].sourceX)
+    expect(useEditorStore.getState().sonFace.x).toBe(0.2)
   })
 })

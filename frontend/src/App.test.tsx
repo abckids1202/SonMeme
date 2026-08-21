@@ -14,6 +14,8 @@ describe('App', () => {
     )
 
     expect(screen.getByRole('link', { name: 'Sonify Generator' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ideal' })).toBeInTheDocument()
+    expect(screen.queryByText('Model Lab')).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Turn someone into “son 😭”' })).toBeInTheDocument()
     expect(screen.getByText('Drop an image here')).toBeInTheDocument()
   })

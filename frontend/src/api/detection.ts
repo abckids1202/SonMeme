@@ -3,7 +3,7 @@ import { API_BASE_URL } from './client'
 
 type DetectionResponse = {
   imageId: string
-  faces: Array<{ id: string; confidence: number; bbox: DetectedFace['bbox']; bboxPixels: { x: number; y: number; width: number; height: number } }>
+  faces: Array<{ id: string; confidence: number; bbox: DetectedFace['bbox']; bboxPixels: { x: number; y: number; width: number; height: number }; landmarks?: Record<string, [number, number]> }>
   model: { customTrained: boolean; inputSize: number; runtime: string; production?: boolean }
   imageWidth: number
   imageHeight: number

@@ -1,35 +1,23 @@
-import { Hand, Image, MousePointer2, ScanFace, SmilePlus, SquareDashedMousePointer, Type } from 'lucide-react'
+import { Grid3X3, Hand, MousePointer2, ScanFace, SquareDashedMousePointer } from 'lucide-react'
 import { useEffect } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
-import type { ActiveTool } from '../../types/editor'
+import type { FaceEditMode } from '../../types/editor'
 import { ToolButton } from './ToolButton'
 
-const tools = [
-  { tool: 'select', label: 'Select', shortcut: 'V', icon: MousePointer2 },
-  { tool: 'face', label: 'Face Target', shortcut: 'F', icon: ScanFace },
-  { tool: 'manual-region', label: 'Manual region', shortcut: 'R', icon: SquareDashedMousePointer },
-  { tool: 'text', label: 'Text', shortcut: 'T', icon: Type },
-  { tool: 'emoji', label: 'Emoji', shortcut: 'E', icon: SmilePlus },
-  { tool: 'cutout', label: 'Cutout', shortcut: 'C', icon: Image },
-  { tool: 'pan', label: 'Pan', shortcut: 'H', icon: Hand },
-] as const
-
-const keyToTool: Record<string, ActiveTool> = {
-  v: 'select',
-  f: 'face',
-  r: 'manual-region',
-  t: 'text',
-  e: 'emoji',
-  c: 'cutout',
-  h: 'pan',
-}
+const modes: Array<{ mode: FaceEditMode; label: string; shortcut: string; icon: typeof ScanFace }> = [
+  { mode: 'move', label: 'Move', shortcut: 'V', icon: MousePointer2 },
+  { mode: 'warp', label: 'Warp', shortcut: 'W', icon: Grid3X3 },
+  { mode: 'mask', label: 'Mask', shortcut: 'M', icon: ScanFace },
+]
 
 function isTypingTarget(target: EventTarget | null) {
   return target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement
 }
 
 export function ToolRail() {
+  const faceEditMode = useEditorStore((state) => state.faceEditMode)
   const activeTool = useEditorStore((state) => state.activeTool)
+  const setFaceEditMode = useEditorStore((state) => state.setFaceEditMode)
   const setActiveTool = useEditorStore((state) => state.setActiveTool)
   const selectLayer = useEditorStore((state) => state.selectLayer)
 
@@ -37,21 +25,32 @@ export function ToolRail() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isTypingTarget(event.target)) return
       if (event.key === 'Escape') {
+        setFaceEditMode('move')
+        setActiveTool('select')
         selectLayer(null)
         return
       }
-      const tool = keyToTool[event.key.toLowerCase()]
-      if (tool) setActiveTool(tool)
+      const key = event.key.toLowerCase()
+      if (key === 'v') { setFaceEditMode('move'); setActiveTool('select') }
+      if (key === 'w') setFaceEditMode('warp')
+      if (key === 'm') setFaceEditMode('mask')
+      if (key === 'r') setActiveTool('manual-region')
+      if (key === 'h') setActiveTool('pan')
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectLayer, setActiveTool])
+  }, [selectLayer, setActiveTool, setFaceEditMode])
 
   return (
     <aside className="tool-rail" aria-label="Editor tools">
-      {tools.map((item) => (
-        <ToolButton key={item.tool} {...item} activeTool={activeTool} onClick={setActiveTool} />
+      {modes.map(({ mode, label, shortcut, icon: Icon }) => (
+        <button key={mode} type="button" className={faceEditMode === mode ? 'tool-button active' : 'tool-button'} aria-label={`${label} mode, shortcut ${shortcut}`} title={`${label} (${shortcut})`} onClick={() => { setFaceEditMode(mode); setActiveTool('select') }}>
+          <Icon size={20} aria-hidden="true" />
+          <span>{shortcut}</span>
+        </button>
       ))}
+      <ToolButton tool="manual-region" label="Manual target" shortcut="R" icon={SquareDashedMousePointer} activeTool={activeTool} onClick={setActiveTool} />
+      <ToolButton tool="pan" label="Pan" shortcut="H" icon={Hand} activeTool={activeTool} onClick={setActiveTool} />
     </aside>
   )
 }

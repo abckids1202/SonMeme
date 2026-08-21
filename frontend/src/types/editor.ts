@@ -12,11 +12,8 @@ export type EditorStatus =
 
 export type ImageLoadState = 'idle' | 'reading' | 'decoding' | 'ready' | 'error'
 
-export type TransformMode = 'classical' | 'neural' | 'cutout'
-
-export type EditorMode = 'replace-detected-face' | 'manual-face-region' | 'free-cutout'
-
-export type ActiveTool = 'select' | 'face' | 'manual-region' | 'text' | 'emoji' | 'cutout' | 'pan'
+export type ActiveTool = 'select' | 'manual-region' | 'pan'
+export type FaceEditMode = 'move' | 'warp' | 'mask'
 
 export type NormalizedPoint = {
   x: number
@@ -35,6 +32,7 @@ export type DetectedFace = {
   bbox: NormalizedBox
   confidence: number
   source: 'mock' | 'manual' | 'custom-detector' | 'external-baseline'
+  landmarks?: Record<string, NormalizedPoint>
   pose?: {
     yaw: number
     pitch: number
@@ -46,36 +44,37 @@ export type CaptionState = {
   text: string
   x: number
   y: number
-  fontSize: number
+  width: number
+  scale: number
   rotation: number
-  strokeWidth: number
   visible: boolean
-  manuallyPlaced: boolean
 }
 
-export type EmojiState = {
-  value: 'crying' | 'sob' | 'skull'
+export type MeshPoint = {
+  sourceX: number
+  sourceY: number
+  targetX: number
+  targetY: number
+}
+
+export type SonFaceLayerState = {
+  id: string
+  sourceUrl: string | null
+  sourceName: string | null
+  targetFaceId: string | null
   x: number
   y: number
-  size: number
+  width: number
+  height: number
   rotation: number
   opacity: number
-  visible: boolean
-  groupedWithCaption: boolean
-}
-
-export type FaceTransformState = {
-  scale: number
-  offsetX: number
-  offsetY: number
-  rotation: number
-  blendStrength: number
-  maskExpansion: number
-  feathering: number
-  colorMatchStrength: number
-  maskPoints: NormalizedPoint[]
-  skewX: number
-  skewY: number
+  blend: 'sticker' | 'soft'
+  mesh: MeshPoint[]
+  topology: '4x4-v1'
+  mask: NormalizedPoint[]
+  feather: number
+  warpedPreviewUrl: string | null
+  manuallyAdjusted: boolean
 }
 
 export type ViewportState = {
@@ -104,16 +103,14 @@ export type EditorState = {
   imageFile: ImageFileMeta | null
   faces: DetectedFace[]
   selectedFaceId: string | null
-  mode: TransformMode
-  editorMode: EditorMode
+  faceEditMode: FaceEditMode
   activeTool: ActiveTool
   caption: CaptionState
-  emoji: EmojiState
-  faceTransform: FaceTransformState
+  sonFace: SonFaceLayerState
   viewport: ViewportState
-  quickMode: 'quick' | 'advanced'
   modelBadge: 'backend-disconnected' | 'mock-data' | 'external-baseline' | 'custom-detector' | 'production-detector' | 'manual'
-  selectedLayer: 'face' | 'caption' | 'emoji' | null
+  selectedLayer: 'face' | 'caption' | null
+  exportModalOpen: boolean
   status: EditorStatus
   error: string | null
 }
