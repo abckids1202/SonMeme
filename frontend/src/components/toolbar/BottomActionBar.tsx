@@ -1,5 +1,6 @@
 import { Download, Maximize, Minus, Plus, RotateCcw, Wand2 } from 'lucide-react'
 import { useEditorStore } from '../../stores/editorStore'
+import { downloadComposition, renderComposition } from '../../utils/exportComposition'
 
 export function BottomActionBar() {
   const viewport = useEditorStore((state) => state.viewport)
@@ -8,8 +9,31 @@ export function BottomActionBar() {
   const hasImage = useEditorStore((state) => Boolean(state.originalUrl))
   const selectedFaceId = useEditorStore((state) => state.selectedFaceId)
   const modelBadge = useEditorStore((state) => state.modelBadge)
+  const setPreviewUrl = useEditorStore((state) => state.setPreviewUrl)
+  const setStatus = useEditorStore((state) => state.setStatus)
+  const setActiveTool = useEditorStore((state) => state.setActiveTool)
+  const status = useEditorStore((state) => state.status)
 
-  const disabledReason = !hasImage ? 'No image loaded' : !selectedFaceId ? 'Select a face first' : modelBadge === 'backend-disconnected' ? 'Backend unavailable' : ''
+  const disabledReason = !hasImage ? 'No image loaded' : !selectedFaceId ? 'Select a face or draw a region' : ''
+  const generatePreview = async () => {
+    setStatus('GENERATING_PREVIEW')
+    try {
+      const blob = await renderComposition(useEditorStore.getState())
+      setPreviewUrl(URL.createObjectURL(blob))
+      setStatus('PREVIEW_READY')
+    } catch {
+      setStatus('ERROR')
+    }
+  }
+  const exportImage = async () => {
+    setStatus('GENERATING_FINAL')
+    try {
+      await downloadComposition(useEditorStore.getState())
+      setStatus('COMPLETE')
+    } catch {
+      setStatus('ERROR')
+    }
+  }
 
   return (
     <footer className="bottom-action-bar" aria-label="Editor actions">
@@ -30,9 +54,10 @@ export function BottomActionBar() {
         <button type="button">Side by side</button>
       </div>
       <div className="action-group right-actions">
-        {disabledReason ? <span className="disabled-reason">{disabledReason}</span> : null}
-        <button type="button" className="button primary" disabled={Boolean(disabledReason)}><Wand2 size={17} /> Generate Preview</button>
-        <button type="button" className="button secondary" disabled={!hasImage}><Download size={17} /> Export</button>
+        <span className="disabled-reason">{disabledReason || ({ READY_TO_GENERATE: 'Ready to sonify', GENERATING_PREVIEW: 'Building preview…', PREVIEW_READY: 'Preview ready', COMPLETE: 'Exported PNG ready', ERROR: 'Something went wrong' } as Record<string, string>)[status] || 'Ready'}</span>
+        {modelBadge === 'backend-disconnected' && hasImage ? <button type="button" className="button secondary" onClick={() => setActiveTool('manual-region')}>Draw manual region</button> : null}
+        <button type="button" className="button primary" disabled={Boolean(disabledReason)} onClick={() => void generatePreview()}><Wand2 size={17} /> Sonify</button>
+        <button type="button" className="button secondary" disabled={!hasImage} onClick={() => void exportImage()}><Download size={17} /> Export</button>
       </div>
     </footer>
   )

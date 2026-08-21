@@ -12,7 +12,7 @@ import type {
   TransformMode,
   ViewportState,
 } from '../types/editor'
-import anthonyFaceUrl from '../assets/anthony-mackie-face.png'
+const anthonyFaceUrl = '/source-faces/anthony-front.png'
 
 const defaultCaption: CaptionState = {
   text: 'son',
@@ -46,6 +46,8 @@ const defaultTransform: FaceTransformState = {
   feathering: 14,
   colorMatchStrength: 0.65,
   maskPoints: [],
+  skewX: 0,
+  skewY: 0,
 }
 
 const defaultViewport: ViewportState = {
@@ -59,6 +61,7 @@ type EditorActions = {
   setError: (error: string | null) => void
   setImageLoadState: (state: EditorState['imageLoadState']) => void
   setUploadedImage: (input: { url: string; width: number; height: number; file: ImageFileMeta }) => void
+  setImageDimensions: (width: number, height: number) => void
   setSourceFace: (input: { url: string; name: string }) => void
   setFaces: (faces: DetectedFace[], badge?: EditorState['modelBadge']) => void
   selectFace: (faceId: string | null) => void
@@ -73,6 +76,8 @@ type EditorActions = {
   clearFaceMask: () => void
   setViewport: (viewport: Partial<ViewportState>) => void
   resetView: () => void
+  setPreviewUrl: (url: string | null) => void
+  setFinalUrl: (url: string | null) => void
   setQuickMode: (mode: EditorState['quickMode']) => void
   reset: () => void
 }
@@ -130,13 +135,14 @@ export const useEditorStore = create<EditorStore>((set) => ({
       status: 'FACE_SELECTION',
       error: null,
     }),
+  setImageDimensions: (imageWidth, imageHeight) => set({ imageWidth, imageHeight }),
   setSourceFace: ({ url, name }) => set({ sourceFaceUrl: url, sourceFaceName: name }),
   setFaces: (faces, badge) =>
     set({
       faces,
       selectedFaceId: faces.length === 1 ? faces[0].id : null,
       selectedLayer: faces.length === 1 ? 'face' : null,
-      modelBadge: badge ?? (faces.some((face) => face.source === 'mock') ? 'mock-data' : 'custom-detector'),
+      modelBadge: badge ?? (faces.some((face) => face.source === 'mock') ? 'mock-data' : faces.some((face) => face.source === 'external-baseline') ? 'production-detector' : 'custom-detector'),
       status: faces.length > 0 ? 'READY_TO_GENERATE' : 'FACE_SELECTION',
     }),
   selectFace: (faceId) => set({ selectedFaceId: faceId, selectedLayer: faceId ? 'face' : null, status: faceId ? 'READY_TO_GENERATE' : 'FACE_SELECTION' }),
@@ -151,6 +157,8 @@ export const useEditorStore = create<EditorStore>((set) => ({
   clearFaceMask: () => set((state) => ({ faceTransform: { ...state.faceTransform, maskPoints: [] } })),
   setViewport: (viewport) => set((state) => ({ viewport: { ...state.viewport, ...viewport } })),
   resetView: () => set({ viewport: defaultViewport }),
+  setPreviewUrl: (previewUrl) => set({ previewUrl }),
+  setFinalUrl: (finalUrl) => set({ finalUrl }),
   setQuickMode: (quickMode) => {
     localStorage.setItem('sonify.quickMode', quickMode)
     set({ quickMode })

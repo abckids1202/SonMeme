@@ -10,6 +10,8 @@ type ImageDropzoneProps = {
   variant?: 'hero' | 'compact'
 }
 
+let activeObjectUrl: string | null = null
+
 async function readImageDimensions(url: string): Promise<{ width: number; height: number }> {
   const image = new Image()
   image.decoding = 'async'
@@ -19,22 +21,21 @@ async function readImageDimensions(url: string): Promise<{ width: number; height
 }
 
 export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
-  const objectUrlRef = useRef<string | null>(null)
   const uploadSequenceRef = useRef(0)
   const abortControllerRef = useRef<AbortController | null>(null)
   const setUploadedImage = useEditorStore((state) => state.setUploadedImage)
+  const setImageDimensions = useEditorStore((state) => state.setImageDimensions)
   const setImageLoadState = useEditorStore((state) => state.setImageLoadState)
   const setFaces = useEditorStore((state) => state.setFaces)
+  const setStatus = useEditorStore((state) => state.setStatus)
   const setError = useEditorStore((state) => state.setError)
 
   const clearObjectUrl = useCallback(() => {
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current)
-      objectUrlRef.current = null
+    if (activeObjectUrl) {
+      URL.revokeObjectURL(activeObjectUrl)
+      activeObjectUrl = null
     }
   }, [])
-
-  useEffect(() => clearObjectUrl, [clearObjectUrl])
 
   const acceptFile = useCallback(
     async (file: File) => {
@@ -51,7 +52,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
       clearObjectUrl()
       setImageLoadState('reading')
       const url = URL.createObjectURL(file)
-      objectUrlRef.current = url
+      activeObjectUrl = url
 
       try {
         setImageLoadState('decoding')
@@ -74,11 +75,15 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
         } else {
           setImageLoadState('ready')
           setFaces([], 'backend-disconnected')
+          setStatus('DETECTING')
           try {
-            const detection = await detectImage(file)
+            const detection = await detectImage(file, controller.signal)
             if (sequence !== uploadSequenceRef.current || controller.signal.aborted) return
-            setFaces(detection.faces.map((face) => ({ ...face, source: 'custom-detector' as const })), 'custom-detector')
+            setImageDimensions(detection.imageWidth, detection.imageHeight)
+            const source = detection.model.production ? 'external-baseline' as const : 'custom-detector' as const
+            setFaces(detection.faces.map((face) => ({ ...face, source })), detection.model.production ? 'production-detector' : 'custom-detector')
           } catch (error) {
+            if (controller.signal.aborted || sequence !== uploadSequenceRef.current) return
             setError(error instanceof Error ? error.message : 'Face detection failed. Is the backend running?')
           }
         }
@@ -87,7 +92,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
         setError('The image could not be decoded. Try another JPEG, PNG, or WebP file.')
       }
     },
-    [clearObjectUrl, setError, setFaces, setImageLoadState, setUploadedImage],
+    [clearObjectUrl, setError, setFaces, setImageDimensions, setImageLoadState, setStatus, setUploadedImage],
   )
 
   useEffect(() => {

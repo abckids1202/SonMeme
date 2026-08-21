@@ -1,4 +1,4 @@
-import { Eraser, ImagePlus, ScanFace, SlidersHorizontal, Type } from 'lucide-react'
+import { ImagePlus, ScanFace, SlidersHorizontal, Type } from 'lucide-react'
 import { useRef } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 
@@ -15,14 +15,12 @@ export function PropertiesPanel() {
   const updateEmoji = useEditorStore((state) => state.updateEmoji)
   const updateTransform = useEditorStore((state) => state.updateTransform)
   const setActiveTool = useEditorStore((state) => state.setActiveTool)
-  const clearFaceMask = useEditorStore((state) => state.clearFaceMask)
-  const maskPoints = useEditorStore((state) => state.faceTransform.maskPoints)
-  const setFaces = useEditorStore((state) => state.setFaces)
   const imageWidth = useEditorStore((state) => state.imageWidth)
   const imageHeight = useEditorStore((state) => state.imageHeight)
   const sourceFaceUrl = useEditorStore((state) => state.sourceFaceUrl)
   const sourceFaceName = useEditorStore((state) => state.sourceFaceName)
   const setSourceFace = useEditorStore((state) => state.setSourceFace)
+  const modelBadge = useEditorStore((state) => state.modelBadge)
   const sourceInputRef = useRef<HTMLInputElement>(null)
 
   const selectedFace = faces.find((face) => face.id === selectedFaceId)
@@ -61,8 +59,8 @@ export function PropertiesPanel() {
             </>
           ) : (
             <>
-              <p className="muted-copy">{faces.length === 0 ? 'No detector result yet. Use mock boxes while training, draw a manual region, or use free cutout mode.' : 'Which person should become “son”?'}</p>
-              <button type="button" className="button secondary full-width" onClick={() => setFaces([{ id: 'mock-face-1', bbox: { x: 0.38, y: 0.2, width: 0.22, height: 0.28 }, confidence: 0.93, source: 'mock', pose: { yaw: 0, pitch: 0, roll: 0 } }], 'mock-data')} disabled={imageWidth <= 0 || imageHeight <= 0}>Use mock detector box</button>
+              <p className="muted-copy">{modelBadge === 'production-detector' ? 'No photographic human face was detected. Draw a region for anime, drawings, objects, or unusual angles.' : 'Draw a region to place Son manually.'}</p>
+              <button type="button" className="button secondary full-width" onClick={() => setActiveTool('manual-region')} disabled={imageWidth <= 0 || imageHeight <= 0}>Draw manual region</button>
             </>
           )}
         </section>
@@ -100,8 +98,8 @@ export function PropertiesPanel() {
             <label className="field"><span>Mask feathering</span><input type="number" min="0" max="80" value={transform.feathering} onChange={(event) => updateTransform({ feathering: Number(event.target.value) })} /></label>
             <label className="field"><span>Mask expansion</span><input type="range" min="0" max="24" value={transform.maskExpansion} onChange={(event) => updateTransform({ maskExpansion: Number(event.target.value) })} /></label>
             <label className="field"><span>Rotation</span><input type="range" min="-30" max="30" value={transform.rotation} onChange={(event) => updateTransform({ rotation: Number(event.target.value) })} /></label>
-            <button type="button" className="button secondary full-width" onClick={() => setActiveTool('manual-region')}><Eraser size={16} /> {maskPoints.length > 2 ? 'Redraw lasso mask' : 'Draw lasso mask'}</button>
-            {maskPoints.length > 2 ? <button type="button" className="button ghost full-width" onClick={clearFaceMask}>Clear lasso mask</button> : null}
+            <label className="field"><span>Horizontal distortion</span><input type="range" min="-25" max="25" value={transform.skewX} onChange={(event) => updateTransform({ skewX: Number(event.target.value) })} /></label>
+            <label className="field"><span>Vertical distortion</span><input type="range" min="-25" max="25" value={transform.skewY} onChange={(event) => updateTransform({ skewY: Number(event.target.value) })} /></label>
           </>
         ) : null}
       </section>

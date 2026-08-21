@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.config import PROJECT_ROOT, Settings
 from app.schemas.health import ModelAvailability, ModelMetadata
+from app.services.face_analyzer import FaceAnalyzer
 
 try:
     import sys
@@ -22,6 +23,7 @@ class ModelRegistry:
     runtime: str = "pytorch"
     loaded: bool = False
     detector: object | None = None
+    production_analyzer: FaceAnalyzer = field(default_factory=FaceAnalyzer)
 
     async def load(self) -> None:
         self.device = self._select_device()
@@ -40,9 +42,7 @@ class ModelRegistry:
         self.loaded = False
 
     def detect(self, image, threshold: float | None = None) -> dict:
-        if self.detector is None:
-            raise RuntimeError("Custom detector checkpoint is not available")
-        return self.detector.predict(image, threshold=threshold)  # type: ignore[union-attr]
+        return self.production_analyzer.detect(image, threshold=threshold or self.settings.detection_confidence_threshold)
 
     def availability(self) -> ModelAvailability:
         return ModelAvailability(

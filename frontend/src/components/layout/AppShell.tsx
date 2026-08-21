@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { FlaskConical, ImagePlus, Microscope, RadioTower } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
+import { downloadComposition } from '../../utils/exportComposition'
 
 const links = [
   { to: '/', label: 'Generator', icon: ImagePlus },
@@ -14,6 +15,8 @@ const badgeLabels = {
   'mock-data': 'Mock data',
   'external-baseline': 'External baseline',
   'custom-detector': 'Custom detector',
+  'production-detector': 'Production face analysis',
+  manual: 'Manual region',
 }
 
 export function AppShell({ children }: PropsWithChildren) {
@@ -43,7 +46,7 @@ export function AppShell({ children }: PropsWithChildren) {
           <button type="button" className="button secondary compact-button" onClick={reset} disabled={!hasImage}>
             Reset
           </button>
-          <button type="button" className="button primary compact-button" disabled={!hasImage}>
+          <button type="button" className="button primary compact-button" disabled={!hasImage} onClick={() => void downloadComposition(useEditorStore.getState())}>
             Export
           </button>
         </div>

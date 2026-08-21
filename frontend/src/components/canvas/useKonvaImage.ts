@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 
-export function useKonvaImage(url: string | null) {
+export function useKonvaImage(url: string | null, reportState = false) {
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const setImageLoadState = useEditorStore((state) => state.setImageLoadState)
   const setError = useEditorStore((state) => state.setError)
@@ -18,23 +18,25 @@ export function useKonvaImage(url: string | null) {
     nextImage.onload = () => {
       if (!cancelled) {
         setImage(nextImage)
-        setImageLoadState('ready')
+        if (reportState) setImageLoadState('ready')
       }
     }
     nextImage.onerror = () => {
       if (!cancelled) {
         setImage(null)
-        setImageLoadState('error')
-        setError('The uploaded image could not be rendered.')
+        if (reportState) {
+          setImageLoadState('error')
+          setError('The uploaded image could not be rendered.')
+        }
       }
     }
-    setImageLoadState('decoding')
+    if (reportState) setImageLoadState('decoding')
     nextImage.src = url
 
     return () => {
       cancelled = true
     }
-  }, [setError, setImageLoadState, url])
+  }, [reportState, setError, setImageLoadState, url])
 
   return image
 }

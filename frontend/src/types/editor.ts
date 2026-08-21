@@ -74,6 +74,8 @@ export type FaceTransformState = {
   feathering: number
   colorMatchStrength: number
   maskPoints: NormalizedPoint[]
+  skewX: number
+  skewY: number
 }
 
 export type ViewportState = {
@@ -110,7 +112,7 @@ export type EditorState = {
   faceTransform: FaceTransformState
   viewport: ViewportState
   quickMode: 'quick' | 'advanced'
-  modelBadge: 'backend-disconnected' | 'mock-data' | 'external-baseline' | 'custom-detector'
+  modelBadge: 'backend-disconnected' | 'mock-data' | 'external-baseline' | 'custom-detector' | 'production-detector' | 'manual'
   selectedLayer: 'face' | 'caption' | 'emoji' | null
   status: EditorStatus
   error: string | null
