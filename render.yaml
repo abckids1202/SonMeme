@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: sonify-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_HOST
+        value: 0.0.0.0
+      - key: MODEL_DEVICE
+        value: cpu
+      - key: MODEL_RUNTIME
+        value: pytorch
+      - key: PUBLIC_DEPLOYMENT
+        value: "true"
+      - key: FRONTEND_ORIGINS
+        sync: false
