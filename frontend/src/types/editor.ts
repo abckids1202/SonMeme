@@ -13,7 +13,22 @@ export type EditorStatus =
 export type ImageLoadState = 'idle' | 'reading' | 'decoding' | 'ready' | 'error'
 
 export type ActiveTool = 'select' | 'manual-region' | 'pan'
-export type FaceEditMode = 'move' | 'warp' | 'mask'
+export type FaceEditMode = 'move' | 'fit' | 'liquify' | 'mask'
+export type SemanticHandleId =
+  | 'foreheadCenter'
+  | 'leftTemple'
+  | 'rightTemple'
+  | 'leftEye'
+  | 'rightEye'
+  | 'nose'
+  | 'leftMouth'
+  | 'rightMouth'
+  | 'leftJaw'
+  | 'rightJaw'
+  | 'chin'
+
+export type FitGroup = 'individual' | 'whole' | 'eyes' | 'mouth' | 'jaw'
+export type ManualFitMode = 'quick' | 'free'
 
 export type NormalizedPoint = {
   x: number
@@ -57,6 +72,21 @@ export type MeshPoint = {
   targetY: number
 }
 
+export type SemanticHandle = {
+  source: NormalizedPoint
+  target: NormalizedPoint
+  guide: NormalizedPoint | null
+}
+
+export type SemanticHandles = Record<SemanticHandleId, SemanticHandle>
+
+export type LiquifyState = {
+  gridSize: 16
+  offsets: NormalizedPoint[]
+  brushSize: number
+  strength: number
+}
+
 export type SonFaceLayerState = {
   id: string
   sourceUrl: string | null
@@ -69,12 +99,15 @@ export type SonFaceLayerState = {
   rotation: number
   opacity: number
   blend: 'sticker' | 'soft'
+  semanticHandles: SemanticHandles
+  liquify: LiquifyState
   mesh: MeshPoint[]
-  topology: '4x4-v1'
+  topology: 'tps-v1'
   mask: NormalizedPoint[]
   feather: number
   warpedPreviewUrl: string | null
   manuallyAdjusted: boolean
+  warpRevision: number
 }
 
 export type ViewportState = {
@@ -104,6 +137,9 @@ export type EditorState = {
   faces: DetectedFace[]
   selectedFaceId: string | null
   faceEditMode: FaceEditMode
+  fitGroup: FitGroup
+  symmetryEnabled: boolean
+  manualFitMode: ManualFitMode
   activeTool: ActiveTool
   caption: CaptionState
   sonFace: SonFaceLayerState
@@ -113,4 +149,11 @@ export type EditorState = {
   exportModalOpen: boolean
   status: EditorStatus
   error: string | null
+  historyPast: FaceEditSnapshot[]
+  historyFuture: FaceEditSnapshot[]
+}
+
+export type FaceEditSnapshot = {
+  sonFace: SonFaceLayerState
+  caption: CaptionState
 }

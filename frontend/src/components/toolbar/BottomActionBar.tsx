@@ -14,6 +14,10 @@ export function BottomActionBar() {
   const setExportModalOpen = useEditorStore((state) => state.setExportModalOpen)
   const setActiveTool = useEditorStore((state) => state.setActiveTool)
   const status = useEditorStore((state) => state.status)
+  const canUndo = useEditorStore((state) => state.historyPast.length > 0)
+  const canRedo = useEditorStore((state) => state.historyFuture.length > 0)
+  const undo = useEditorStore((state) => state.undo)
+  const redo = useEditorStore((state) => state.redo)
 
   const disabledReason = !hasImage ? 'No image loaded' : !selectedFaceId ? 'Select a face or draw a region' : ''
   const generatePreview = async () => {
@@ -30,8 +34,8 @@ export function BottomActionBar() {
   return (
     <footer className="bottom-action-bar" aria-label="Editor actions">
       <div className="action-group">
-        <button type="button" className="icon-button" aria-label="Undo" disabled>Undo</button>
-        <button type="button" className="icon-button" aria-label="Redo" disabled>Redo</button>
+        <button type="button" className="icon-button" aria-label="Undo" onClick={undo} disabled={!canUndo}>Undo</button>
+        <button type="button" className="icon-button" aria-label="Redo" onClick={redo} disabled={!canRedo}>Redo</button>
       </div>
       <div className="action-group">
         <button type="button" className="icon-button" aria-label="Zoom out" onClick={() => setViewport({ zoom: Math.max(0.1, viewport.zoom - 0.1) })}><Minus size={16} /></button>

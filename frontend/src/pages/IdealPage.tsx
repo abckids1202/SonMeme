@@ -1,10 +1,10 @@
-import { ArrowRight, Grid3X3, ImagePlus, ScanFace, Shapes } from 'lucide-react'
+import { ArrowRight, ImagePlus, ScanFace, Shapes, WandSparkles } from 'lucide-react'
 import heroImage from '../assets/hero.png'
 import sourceFace from '../assets/anthony-mackie-face.png'
 
 const examples = [
   { title: 'Portrait', detail: 'Auto Fit', image: sourceFace },
-  { title: 'Side face', detail: 'Auto Fit + Warp', image: heroImage },
+  { title: 'Side face', detail: 'Auto Fit + Fit', image: heroImage },
   { title: 'Anime or drawing', detail: 'Manual Target', image: heroImage },
   { title: 'Object or food', detail: 'Manual Target + Warp', image: heroImage },
 ]
@@ -32,10 +32,11 @@ export function IdealPage() {
         <div className="ideal-section-heading"><h2>How to fit the Son face</h2><p>Use the smallest tool that solves the problem.</p></div>
         <div className="ideal-steps">
           <article><ScanFace size={22} /><strong>Move</strong><span>Place, resize, and rotate the face.</span></article>
-          <article><Grid3X3 size={22} /><strong>Warp</strong><span>Pull the 4 × 4 mesh to reshape cheeks, jaw, eyes, or an object.</span></article>
+          <article><ScanFace size={22} /><strong>Fit</strong><span>Move semantic forehead, eye, nose, mouth, and jaw handles onto the target guides.</span></article>
+          <article><WandSparkles size={22} /><strong>Liquify</strong><span>Paint small local pushes directly on the fitted face without changing its size or position.</span></article>
           <article><Shapes size={22} /><strong>Mask</strong><span>Adjust the silhouette when the target has an unusual outline.</span></article>
         </div>
-        <p className="ideal-tip"><ImagePlus size={17} /> The stranger the target, the more useful Warp mode becomes. <ArrowRight size={17} /> Export when the canvas looks right.</p>
+        <p className="ideal-tip"><ImagePlus size={17} /> The stranger the target, the more useful Manual Target and Liquify become. <ArrowRight size={17} /> Export when the canvas looks right.</p>
       </section>
     </main>
   )

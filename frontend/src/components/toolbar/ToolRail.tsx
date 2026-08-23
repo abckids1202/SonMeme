@@ -1,4 +1,4 @@
-import { Grid3X3, Hand, MousePointer2, ScanFace, SquareDashedMousePointer } from 'lucide-react'
+import { Hand, MousePointer2, ScanFace, Shapes, SquareDashedMousePointer, WandSparkles } from 'lucide-react'
 import { useEffect } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
 import type { FaceEditMode } from '../../types/editor'
@@ -6,8 +6,9 @@ import { ToolButton } from './ToolButton'
 
 const modes: Array<{ mode: FaceEditMode; label: string; shortcut: string; icon: typeof ScanFace }> = [
   { mode: 'move', label: 'Move', shortcut: 'V', icon: MousePointer2 },
-  { mode: 'warp', label: 'Warp', shortcut: 'W', icon: Grid3X3 },
-  { mode: 'mask', label: 'Mask', shortcut: 'M', icon: ScanFace },
+  { mode: 'fit', label: 'Fit', shortcut: 'F', icon: ScanFace },
+  { mode: 'liquify', label: 'Liquify', shortcut: 'L', icon: WandSparkles },
+  { mode: 'mask', label: 'Mask', shortcut: 'M', icon: Shapes },
 ]
 
 function isTypingTarget(target: EventTarget | null) {
@@ -32,7 +33,8 @@ export function ToolRail() {
       }
       const key = event.key.toLowerCase()
       if (key === 'v') { setFaceEditMode('move'); setActiveTool('select') }
-      if (key === 'w') setFaceEditMode('warp')
+      if (key === 'f') setFaceEditMode('fit')
+      if (key === 'l') setFaceEditMode('liquify')
       if (key === 'm') setFaceEditMode('mask')
       if (key === 'r') setActiveTool('manual-region')
       if (key === 'h') setActiveTool('pan')
