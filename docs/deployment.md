@@ -18,7 +18,7 @@ The health check is:
 https://sonify-api.onrender.com/api/v1/health
 ```
 
-Render uses the CPU production face-recognition detector and the OpenCV/TPS warp. The locally trained PyTorch checkpoint is ignored by Git and is not copied into this public image. Do not commit model weights; use private object storage and a startup download step if the custom checkpoint must be deployed later.
+Render uses MediaPipe BlazeFace on CPU and the OpenCV/TPS warp. The dlib/face-recognition dependency is intentionally excluded because Render cannot build dlib reliably. The Docker build downloads the small BlazeFace model from MediaPipe’s public model storage. The locally trained PyTorch checkpoint is ignored by Git and is not copied into this public image. Do not commit model weights; use private object storage and a startup download step if the custom checkpoint must be deployed later.
 
 ## Vercel
 

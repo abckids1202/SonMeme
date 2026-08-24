@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
+from pathlib import Path
 from typing import Any
 
 import cv2
@@ -11,6 +13,11 @@ try:
     import face_recognition
 except ImportError:  # pragma: no cover - OpenCV remains available in minimal installs.
     face_recognition = None  # type: ignore[assignment]
+
+try:
+    import mediapipe as mp
+except ImportError:  # pragma: no cover - local development keeps the dlib path available.
+    mp = None  # type: ignore[assignment]
 
 
 @dataclass(frozen=True)
@@ -25,6 +32,9 @@ class FaceAnalyzer:
         pixels = np.asarray(image)
         faces = self._landmark_faces(pixels, width, height, threshold)
         method = "face-recognition-landmarks"
+        if not faces:
+            faces = self._mediapipe_faces(pixels, width, height, threshold)
+            method = "mediapipe-blazeface"
         if not faces:
             faces = self._cascade_faces(pixels, width, height, threshold)
             method = "opencv-face-cascade"
@@ -42,6 +52,38 @@ class FaceAnalyzer:
             "imageWidth": width,
             "imageHeight": height,
         }
+
+    def _mediapipe_faces(self, pixels: np.ndarray, width: int, height: int, threshold: float) -> list[dict[str, Any]]:
+        model_path = Path(os.getenv("MEDIAPIPE_FACE_MODEL_PATH", "/models/blaze_face_short_range.tflite"))
+        if mp is None or not model_path.exists() or not hasattr(mp, "tasks"):
+            return []
+        try:
+            base_options = mp.tasks.BaseOptions(model_asset_path=str(model_path))
+            options = mp.tasks.vision.FaceDetectorOptions(
+                base_options=base_options,
+                running_mode=mp.tasks.vision.RunningMode.IMAGE,
+                min_detection_confidence=threshold,
+            )
+            image = mp.Image(image_format=mp.ImageFormat.SRGB, data=pixels)
+            with mp.tasks.vision.FaceDetector.create_from_options(options) as detector:
+                detections = detector.detect(image).detections
+        except Exception:  # pragma: no cover - depends on the optional runtime/model asset.
+            return []
+
+        faces: list[dict[str, Any]] = []
+        for index, detection in enumerate(detections):
+            box = detection.bounding_box
+            expanded = self._expanded_box(box.origin_x, box.origin_y, box.origin_x + box.width, box.origin_y + box.height, width, height)
+            if expanded is None:
+                continue
+            keypoints = getattr(detection, "keypoints", [])
+            landmarks: dict[str, list[tuple[int, int]]] = {}
+            names = ("right_eye", "left_eye", "nose_tip", "mouth_center")
+            for name, keypoint in zip(names, keypoints):
+                landmarks[name] = [(int(keypoint.x * width), int(keypoint.y * height))]
+            score = float(detection.categories[0].score) if detection.categories else threshold
+            faces.append(self._face_payload(index, expanded, width, height, score, landmarks, "mediapipe"))
+        return faces
 
     def _landmark_faces(self, pixels: np.ndarray, width: int, height: int, threshold: float) -> list[dict[str, Any]]:
         if face_recognition is None:
