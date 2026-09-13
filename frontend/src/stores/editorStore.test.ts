@@ -24,6 +24,29 @@ describe('editor store', () => {
     expect(useEditorStore.getState().status).toBe('READY_TO_GENERATE')
   })
 
+  it('auto-selects the largest detected face', () => {
+    useEditorStore.getState().reset()
+    useEditorStore.getState().setFaces([
+      { id: 'small', bbox: { x: 0.1, y: 0.2, width: 0.15, height: 0.15 }, confidence: 0.99, source: 'external-baseline' },
+      { id: 'large', bbox: { x: 0.4, y: 0.2, width: 0.35, height: 0.45 }, confidence: 0.88, source: 'external-baseline' },
+    ])
+
+    expect(useEditorStore.getState().selectedFaceId).toBe('large')
+    expect(useEditorStore.getState().sonFace.targetFaceId).toBe('large')
+  })
+
+  it('updates a perspective corner without moving the layer', () => {
+    useEditorStore.getState().reset()
+    useEditorStore.getState().setFaces([{ id: 'face-corner', bbox: { x: 0.2, y: 0.2, width: 0.4, height: 0.5 }, confidence: 0.9, source: 'external-baseline' }])
+    const before = useEditorStore.getState().sonFace
+    useEditorStore.getState().updateDistortCorner(0, { x: -0.1, y: 0.08 })
+    const after = useEditorStore.getState().sonFace
+
+    expect(after.distortCorners[0]).toEqual({ x: -0.1, y: 0.08 })
+    expect(after.x).toBe(before.x)
+    expect(after.y).toBe(before.y)
+  })
+
   it('clears stale faces when replacing an image', () => {
     useEditorStore.getState().setFaces([
       { id: 'face-1', bbox: { x: 0, y: 0, width: 0.2, height: 0.2 }, confidence: 0.8, source: 'mock' },

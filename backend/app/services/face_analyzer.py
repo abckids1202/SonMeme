@@ -35,9 +35,9 @@ class FaceAnalyzer:
         if not faces:
             faces = self._mediapipe_faces(pixels, width, height, threshold)
             method = "mediapipe-blazeface"
-        if not faces:
-            faces = self._cascade_faces(pixels, width, height, threshold)
-            method = "opencv-face-cascade"
+        # A weak cascade can produce convincing-looking but incorrect regions. The UI
+        # has a deterministic manual rectangle fallback, so do not return guesses as
+        # production detections when both landmark-capable detectors fail.
         return {
             "faces": faces,
             "model": {

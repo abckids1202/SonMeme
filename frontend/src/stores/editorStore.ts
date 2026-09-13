@@ -63,6 +63,13 @@ export const createDefaultMask = (): NormalizedPoint[] => [
   { x: 0.13, y: 0.17 }, { x: 0.3, y: 0.04 },
 ]
 
+export const createDefaultDistortCorners = (): [NormalizedPoint, NormalizedPoint, NormalizedPoint, NormalizedPoint] => [
+  { x: 0, y: 0 },
+  { x: 1, y: 0 },
+  { x: 1, y: 1 },
+  { x: 0, y: 1 },
+]
+
 export const createDefaultLiquify = (): LiquifyState => ({
   gridSize: 16,
   offsets: Array.from({ length: 16 * 16 }, () => ({ x: 0, y: 0 })),
@@ -149,6 +156,7 @@ const emptySonFace: SonFaceLayerState = {
   warpedPreviewUrl: null,
   manuallyAdjusted: false,
   warpRevision: 0,
+  distortCorners: createDefaultDistortCorners(),
 }
 
 function createSonFace(face: DetectedFace | null, sourceUrl: string | null, sourceName: string | null): SonFaceLayerState {
@@ -199,7 +207,8 @@ type EditorActions = {
   setImageLoadState: (state: EditorState['imageLoadState']) => void
   setUploadedImage: (input: { url: string; width: number; height: number; file: ImageFileMeta }) => void
   setImageDimensions: (width: number, height: number) => void
-  setSourceFace: (input: { url: string; name: string }) => void
+  setSourceFace: (input: { url: string; name: string; crop?: { x: number; y: number; width: number; height: number }; mask?: NormalizedPoint[]; confirmed?: boolean; needsReview?: boolean }) => void
+  confirmSourceFace: () => void
   setFaces: (faces: DetectedFace[], badge?: EditorState['modelBadge']) => void
   selectFace: (faceId: string | null) => void
   setFaceEditMode: (mode: FaceEditMode) => void
@@ -214,6 +223,7 @@ type EditorActions = {
   updateSemanticHandle: (id: SemanticHandleId, point: NormalizedPoint) => void
   applyLiquifyStroke: (center: NormalizedPoint, delta: NormalizedPoint) => void
   updateMaskPoint: (index: number, point: NormalizedPoint) => void
+  updateDistortCorner: (index: number, point: NormalizedPoint) => void
   autoFitFace: () => void
   resetSonFaceShape: () => void
   resetSonFacePosition: () => void
@@ -236,6 +246,7 @@ export type EditorStore = EditorState & EditorActions
 const initialState: EditorState = {
   imageId: null, originalUrl: null, previewUrl: null, finalUrl: null,
   imageWidth: 0, imageHeight: 0, sourceFaceUrl: anthonyFaceUrl, sourceFaceName: 'Anthony Mackie',
+  sourceCrop: { x: 0, y: 0, width: 1, height: 1 }, sourceMask: createDefaultMask(), sourceConfirmed: true, sourceNeedsReview: false,
   imageLoadState: 'idle', imageFile: null, faces: [], selectedFaceId: null,
   faceEditMode: 'move', fitGroup: 'individual', symmetryEnabled: true, manualFitMode: 'quick', activeTool: 'select',
   caption: defaultCaption, sonFace: emptySonFace, viewport: defaultViewport,
@@ -258,9 +269,20 @@ export const useEditorStore = create<EditorStore>((set) => ({
     status: 'FACE_SELECTION', error: null, historyPast: [], historyFuture: [],
   })),
   setImageDimensions: (imageWidth, imageHeight) => set({ imageWidth, imageHeight }),
-  setSourceFace: ({ url, name }) => set((state) => ({ sourceFaceUrl: url, sourceFaceName: name, sonFace: dirtyFace(state.sonFace, { sourceUrl: url, sourceName: name }) })),
+  setSourceFace: ({ url, name, crop, mask, confirmed = true, needsReview = false }) => set((state) => ({
+    sourceFaceUrl: url,
+    sourceFaceName: name,
+    sourceCrop: crop ?? state.sourceCrop,
+    sourceMask: mask ?? state.sourceMask,
+    sourceConfirmed: confirmed,
+    sourceNeedsReview: needsReview,
+    sonFace: dirtyFace(state.sonFace, { sourceUrl: url, sourceName: name }),
+  })),
+  confirmSourceFace: () => set({ sourceConfirmed: true, sourceNeedsReview: false }),
   setFaces: (faces, badge) => set((state) => {
-    const selectedFaceId = faces.length === 1 ? faces[0].id : null
+    const selectedFaceId = faces.length > 0
+      ? [...faces].sort((first, second) => (second.bbox.width * second.bbox.height) - (first.bbox.width * first.bbox.height))[0].id
+      : null
     const selectedFace = faces.find((face) => face.id === selectedFaceId) ?? null
     return {
       faces, selectedFaceId, selectedLayer: selectedFaceId ? 'face' : null,
@@ -315,18 +337,23 @@ export const useEditorStore = create<EditorStore>((set) => ({
     return { sonFace: dirtyFace(state.sonFace, { liquify: { ...state.sonFace.liquify, offsets: nextOffsets } }) }
   }),
   updateMaskPoint: (index, point) => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mask: state.sonFace.mask.map((item, itemIndex) => itemIndex === index ? { x: clamp(point.x), y: clamp(point.y) } : item) }) })),
+  updateDistortCorner: (index, point) => set((state) => ({
+    sonFace: dirtyFace(state.sonFace, {
+      distortCorners: state.sonFace.distortCorners.map((item, itemIndex) => itemIndex === index ? { x: clamp(point.x, -0.35, 1.35), y: clamp(point.y, -0.35, 1.35) } : item) as SonFaceLayerState['distortCorners'],
+    }),
+  })),
   autoFitFace: () => set((state) => {
     const face = state.faces.find((item) => item.id === state.selectedFaceId)
     if (!face) return state
-    return { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0, semanticHandles: targetSemanticHandles(face), manuallyAdjusted: false }) }
+    return { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0, semanticHandles: targetSemanticHandles(face), distortCorners: createDefaultDistortCorners(), manuallyAdjusted: false }) }
   }),
   resetSonFaceShape: () => set((state) => {
     const face = state.faces.find((item) => item.id === state.selectedFaceId)
-    return { sonFace: dirtyFace(state.sonFace, { semanticHandles: targetSemanticHandles(face ?? null), mesh: createRegularMesh(), manuallyAdjusted: false }) }
+    return { sonFace: dirtyFace(state.sonFace, { semanticHandles: targetSemanticHandles(face ?? null), mesh: createRegularMesh(), distortCorners: createDefaultDistortCorners(), manuallyAdjusted: false }) }
   }),
   resetSonFacePosition: () => set((state) => {
     const face = state.faces.find((item) => item.id === state.selectedFaceId)
-    return face ? { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0 }) } : state
+    return face ? { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0, distortCorners: createDefaultDistortCorners() }) } : state
   }),
   resetSonFaceMask: () => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mask: createDefaultMask() }) })),
   resetLiquify: () => set((state) => ({ sonFace: dirtyFace(state.sonFace, { liquify: { ...createDefaultLiquify(), brushSize: state.sonFace.liquify.brushSize, strength: state.sonFace.liquify.strength } }) })),

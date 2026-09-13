@@ -13,7 +13,7 @@ export type EditorStatus =
 export type ImageLoadState = 'idle' | 'reading' | 'decoding' | 'ready' | 'error'
 
 export type ActiveTool = 'select' | 'manual-region' | 'pan'
-export type FaceEditMode = 'move' | 'fit' | 'liquify' | 'mask'
+export type FaceEditMode = 'move' | 'resize' | 'rotate' | 'distort' | 'fit' | 'liquify' | 'mask'
 export type SemanticHandleId =
   | 'foreheadCenter'
   | 'leftTemple'
@@ -108,6 +108,7 @@ export type SonFaceLayerState = {
   warpedPreviewUrl: string | null
   manuallyAdjusted: boolean
   warpRevision: number
+  distortCorners: [NormalizedPoint, NormalizedPoint, NormalizedPoint, NormalizedPoint]
 }
 
 export type ViewportState = {
@@ -132,6 +133,10 @@ export type EditorState = {
   imageHeight: number
   sourceFaceUrl: string | null
   sourceFaceName: string | null
+  sourceCrop: NormalizedBox
+  sourceMask: NormalizedPoint[]
+  sourceConfirmed: boolean
+  sourceNeedsReview: boolean
   imageLoadState: ImageLoadState
   imageFile: ImageFileMeta | null
   faces: DetectedFace[]

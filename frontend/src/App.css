@@ -330,6 +330,10 @@ h2 {
   margin: 10px 0 14px;
 }
 
+.mode-switch {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .button-row {
   grid-template-columns: 1fr 1fr;
 }
@@ -383,6 +387,57 @@ h2 {
   border-top: 1px solid #303138;
 }
 
+.face-choice-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.face-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #39393f;
+  border-radius: 8px;
+  color: #d9dae0;
+  background: #202126;
+  cursor: pointer;
+}
+
+.face-choice.active {
+  border-color: #ffd166;
+  color: #161616;
+  background: #ffd166;
+}
+
+.face-choice small {
+  color: #aeb0ba;
+}
+
+.face-choice.active small {
+  color: #5d4b18;
+}
+
+.crop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.compact-field {
+  margin-bottom: 4px;
+}
+
+.compact-field input {
+  min-height: 34px;
+}
+
 .source-face-preview {
   display: flex;
   align-items: center;
@@ -412,6 +467,48 @@ h2 {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.source-crop-editor {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin: 10px 0;
+  border: 1px solid #3b3c44;
+  border-radius: 8px;
+  background: #101116;
+  touch-action: none;
+}
+
+.source-crop-editor img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.source-crop-box {
+  position: absolute;
+  border: 2px solid #ffd166;
+  background: rgba(255, 209, 102, 0.12);
+  cursor: move;
+  touch-action: none;
+}
+
+.crop-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #161616;
+  border-radius: 50%;
+  background: #ffd166;
+}
+
+.crop-handle-0 { top: -7px; left: -7px; cursor: nwse-resize; }
+.crop-handle-1 { top: -7px; right: -7px; cursor: nesw-resize; }
+.crop-handle-2 { right: -7px; bottom: -7px; cursor: nwse-resize; }
+.crop-handle-3 { bottom: -7px; left: -7px; cursor: nesw-resize; }
 
 .property-section:first-of-type {
   border-top: 0;

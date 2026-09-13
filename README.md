@@ -1,6 +1,6 @@
 # Sonify
 
-Sonify is a still-image parody meme generator for the `son 😭` format. The first milestone creates the runnable project foundation: a Vite + React + TypeScript editor shell, a FastAPI backend with typed configuration and a health endpoint, and a separate ML workspace for future custom training.
+Sonify is a focused still-image parody tool for placing the bundled Anthony Mackie `son 😭` face into people, objects, drawings, and scenes. Upload a target once, let the local detector choose a face, adjust the face layer with familiar canvas controls, and export the composition at the original resolution.
 
 The project is intentionally staged. This commit does not claim to include trained custom face models yet. The app reports unavailable checkpoints honestly until later milestones add the detector, landmarks, classical warp pipeline, and neural transformer.
 
@@ -76,9 +76,11 @@ Copy `.env.example` to `.env` for local overrides. `MODEL_DEVICE=auto` chooses C
 
 Sonify is for AI-edited parody images only. It handles still images, does not build voice cloning or realtime video replacement, and must not retain uploads beyond the configured TTL. Future public deployments should add provenance marking.
 
-## Known Limitations
+## Editor Behavior
 
-Milestone 1 is a foundation. Upload, detection, landmark inference, classical warping, and final image export are intentionally scheduled for later milestones.
+The main editor uses the backend only for face detection. Face cropping, transparent masking, proportional resize, rotation, four-corner distortion, captioning, preview, and export run in the browser through one shared compositor. When automatic detection fails, draw a rectangular target and continue editing normally.
+
+The trained FCOS detector remains available in Model Lab for experiments. The main editor uses the higher-accuracy local landmark detector first and MediaPipe as a portable fallback.
 
 ## Detector Training Quick Start
 
