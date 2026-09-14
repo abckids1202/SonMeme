@@ -5,6 +5,7 @@ import { detectImage } from '../../api/detection'
 import { useEditorStore } from '../../stores/editorStore'
 import type { DetectedFace, FaceEditMode, NormalizedBox } from '../../types/editor'
 import { fullSourceCrop, sourceCropForFace, sourceMaskForFace } from '../../utils/sourceFace'
+import { InstantAIPanel } from '../generator/InstantAIPanel'
 
 const modes: Array<{ mode: FaceEditMode; label: string; icon: typeof ScanFace }> = [
   { mode: 'move', label: 'Move', icon: ScanFace },
@@ -120,6 +121,7 @@ export function PropertiesPanel() {
   }
 
   return <aside className="properties-panel" aria-label="Face controls">
+    <InstantAIPanel />
     <section className="property-section face-target-section">
       <div className="panel-heading"><ScanFace size={18} /><h2>Target face</h2></div>
       {faces.length > 0 ? <div className="face-choice-list" role="group" aria-label="Detected faces">

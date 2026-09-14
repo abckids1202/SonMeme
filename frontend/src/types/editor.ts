@@ -10,6 +10,20 @@ export type EditorStatus =
   | 'COMPLETE'
   | 'ERROR'
 
+export type GenerationPreset = 'natural' | 'scene-blend' | 'meme'
+export type GenerationStatus = 'idle' | 'checking' | 'queued' | 'running' | 'complete' | 'failed' | 'cancelled'
+
+export type GenerationState = {
+  status: GenerationStatus
+  preset: GenerationPreset
+  jobId: string | null
+  resultUrl: string | null
+  active: boolean
+  providerConfigured: boolean | null
+  noticeAcknowledged: boolean
+  error: string | null
+}
+
 export type ImageLoadState = 'idle' | 'reading' | 'decoding' | 'ready' | 'error'
 
 export type ActiveTool = 'select' | 'manual-region' | 'pan'
@@ -156,6 +170,7 @@ export type EditorState = {
   error: string | null
   historyPast: FaceEditSnapshot[]
   historyFuture: FaceEditSnapshot[]
+  generation: GenerationState
 }
 
 export type FaceEditSnapshot = {

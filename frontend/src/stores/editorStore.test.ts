@@ -110,4 +110,14 @@ describe('editor store', () => {
     expect(state.sonFace.y).toEqual(position.y)
     expect(state.sonFace.liquify.offsets.some((offset) => offset.x !== 0 || offset.y !== 0)).toBe(true)
   })
+
+  it('invalidates an AI result when placement changes', () => {
+    useEditorStore.getState().reset()
+    useEditorStore.getState().setFaces([{ id: 'face-ai', bbox: { x: 0.1, y: 0.1, width: 0.4, height: 0.5 }, confidence: 0.9, source: 'manual' }])
+    useEditorStore.getState().setGenerationState({ status: 'complete', resultUrl: 'blob:ai', active: true })
+    useEditorStore.getState().updateSonFace({ x: 0.2 })
+
+    expect(useEditorStore.getState().generation.resultUrl).toBeNull()
+    expect(useEditorStore.getState().generation.active).toBe(false)
+  })
 })

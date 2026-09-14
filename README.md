@@ -78,7 +78,9 @@ Sonify is for AI-edited parody images only. It handles still images, does not bu
 
 ## Editor Behavior
 
-The main editor uses the backend only for face detection. Face cropping, transparent masking, proportional resize, rotation, four-corner distortion, captioning, preview, and export run in the browser through one shared compositor. When automatic detection fails, draw a rectangular target and continue editing normally.
+The main editor uses the backend for face detection and optional Instant AI generation. Face cropping, transparent masking, proportional resize, rotation, four-corner distortion, captioning, deterministic preview, and export run in the browser through one shared compositor. Instant AI sends the active target and source images to a server-configured provider only after the user presses the button, then returns a reviewable scene-preserving render. When automatic detection fails, draw a rectangular target and continue editing normally.
+
+Instant AI is disabled by default. Copy `.env.example`, set `SONIFY_GENERATION_ENABLED=true`, and configure a server-side provider URL and key when you are ready. Use `SONIFY_GENERATION_PROVIDER=mock` for deterministic local provider tests without an external service.
 
 The trained FCOS detector remains available in Model Lab for experiments. The main editor uses the higher-accuracy local landmark detector first and MediaPipe as a portable fallback.
 

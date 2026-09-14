@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +16,7 @@ class Settings(BaseSettings):
         env_file=PROJECT_ROOT.parent / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        populate_by_name=True,
     )
 
     app_name: str = "Sonify"
@@ -52,6 +53,39 @@ class Settings(BaseSettings):
     enable_neural_swap: bool = False
     enable_debug_outputs: bool = True
     public_deployment: bool = False
+
+    generation_enabled: bool = Field(
+        False,
+        validation_alias=AliasChoices("SONIFY_GENERATION_ENABLED", "GENERATION_ENABLED"),
+    )
+    generation_provider: str = Field(
+        "configured-http",
+        validation_alias=AliasChoices("SONIFY_GENERATION_PROVIDER", "GENERATION_PROVIDER"),
+    )
+    generation_api_url: str | None = Field(
+        None,
+        validation_alias=AliasChoices("SONIFY_GENERATION_API_URL", "GENERATION_API_URL"),
+    )
+    generation_api_key: str | None = Field(
+        None,
+        validation_alias=AliasChoices("SONIFY_GENERATION_API_KEY", "GENERATION_API_KEY"),
+    )
+    generation_model: str = Field(
+        "sonify-face-inpaint",
+        validation_alias=AliasChoices("SONIFY_GENERATION_MODEL", "GENERATION_MODEL"),
+    )
+    generation_timeout_seconds: float = Field(
+        90.0,
+        gt=1,
+        le=300,
+        validation_alias=AliasChoices("SONIFY_GENERATION_TIMEOUT_SECONDS", "GENERATION_TIMEOUT_SECONDS"),
+    )
+    generation_temp_ttl_minutes: int = Field(
+        30,
+        gt=1,
+        le=240,
+        validation_alias=AliasChoices("SONIFY_GENERATION_TEMP_TTL_MINUTES", "GENERATION_TEMP_TTL_MINUTES"),
+    )
 
     @field_validator("frontend_origins", mode="before")
     @classmethod

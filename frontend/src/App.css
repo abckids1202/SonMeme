@@ -292,6 +292,22 @@ h2 {
   background: #101116;
 }
 
+.canvas-result-badge {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+  padding: 7px 10px;
+  border: 1px solid #6f5b22;
+  border-radius: 8px;
+  color: #fff1bf;
+  background: rgba(35, 30, 16, 0.9);
+  font-size: 0.78rem;
+}
+
 .sonify-stage {
   width: min(100%, 960px);
   aspect-ratio: 48 / 31;
@@ -513,6 +529,128 @@ h2 {
 .property-section:first-of-type {
   border-top: 0;
   padding-top: 0;
+}
+
+.instant-ai-section {
+  padding-top: 0;
+}
+
+.ai-beta-pill {
+  margin-left: auto;
+  padding: 3px 6px;
+  border: 1px solid #6f5b22;
+  border-radius: 5px;
+  color: #ffd166;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.ai-preset-grid {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.ai-preset {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #39393f;
+  border-radius: 8px;
+  color: #d9dae0;
+  text-align: left;
+  background: #202126;
+  cursor: pointer;
+}
+
+.ai-preset strong {
+  font-size: 0.88rem;
+}
+
+.ai-preset small,
+.ai-footnote {
+  color: #9fa0aa;
+  line-height: 1.35;
+}
+
+.ai-preset.active {
+  border-color: #ffd166;
+  color: #161616;
+  background: #ffd166;
+}
+
+.ai-preset.active small {
+  color: #5d4b18;
+}
+
+.ai-target-summary,
+.ai-status,
+.ai-unavailable,
+.ai-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 10px 0;
+  color: #b9bac2;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.ai-target-summary svg {
+  flex: 0 0 auto;
+  color: #ffd166;
+  margin-top: 2px;
+}
+
+.ai-notice {
+  align-items: flex-start;
+  padding: 9px;
+  border: 1px solid #4d4327;
+  border-radius: 8px;
+  background: #242016;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.ai-unavailable,
+.ai-error {
+  color: #ffcc9b;
+}
+
+.ai-error {
+  color: #ff9b9b;
+}
+
+.ai-result-preview {
+  position: relative;
+  overflow: hidden;
+  margin: 12px 0;
+  border: 1px solid #4d4327;
+  border-radius: 8px;
+  background: #101116;
+}
+
+.ai-result-preview img {
+  display: block;
+  width: 100%;
+  max-height: 190px;
+  object-fit: contain;
+}
+
+.ai-result-preview span {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #fff1bf;
+  background: rgba(20, 18, 12, 0.86);
+  font-size: 0.72rem;
+}
+
+.ai-result-actions {
+  margin: 8px 0;
 }
 
 .panel-heading,

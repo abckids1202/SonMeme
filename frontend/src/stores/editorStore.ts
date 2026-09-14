@@ -18,6 +18,7 @@ import type {
   SemanticHandles,
   SonFaceLayerState,
   ViewportState,
+  GenerationState,
 } from '../types/editor'
 
 const anthonyFaceUrl = '/source-faces/anthony-front.png'
@@ -178,6 +179,17 @@ function createSonFace(face: DetectedFace | null, sourceUrl: string | null, sour
 
 const defaultViewport: ViewportState = { zoom: 1, panX: 0, panY: 0 }
 
+const defaultGeneration: GenerationState = {
+  status: 'idle',
+  preset: 'natural',
+  jobId: null,
+  resultUrl: null,
+  active: false,
+  providerConfigured: null,
+  noticeAcknowledged: false,
+  error: null,
+}
+
 function dirtyFace(face: SonFaceLayerState, changes: Partial<SonFaceLayerState>): SonFaceLayerState {
   return { ...face, ...changes, warpedPreviewUrl: null, warpRevision: face.warpRevision + 1, manuallyAdjusted: true }
 }
@@ -238,6 +250,8 @@ type EditorActions = {
   setPreviewUrl: (url: string | null) => void
   setFinalUrl: (url: string | null) => void
   setExportModalOpen: (open: boolean) => void
+  setGenerationState: (changes: Partial<GenerationState>) => void
+  acknowledgeGenerationNotice: () => void
   reset: () => void
 }
 
@@ -253,6 +267,11 @@ const initialState: EditorState = {
   modelBadge: import.meta.env.VITE_USE_MOCK_BACKEND === 'true' ? 'mock-data' : 'backend-disconnected',
   selectedLayer: null, exportModalOpen: false, status: 'EMPTY', error: null,
   historyPast: [], historyFuture: [],
+  generation: defaultGeneration,
+}
+
+function resetGeneration(state: EditorState): GenerationState {
+  return { ...defaultGeneration, preset: state.generation.preset, noticeAcknowledged: state.generation.noticeAcknowledged }
 }
 
 export const useEditorStore = create<EditorStore>((set) => ({
@@ -266,7 +285,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
     faces: [], selectedFaceId: null, selectedLayer: null, viewport: defaultViewport,
     caption: defaultCaption, sonFace: createSonFace(null, state.sourceFaceUrl, state.sourceFaceName),
     faceEditMode: 'move', fitGroup: 'individual', symmetryEnabled: true, manualFitMode: 'quick',
-    status: 'FACE_SELECTION', error: null, historyPast: [], historyFuture: [],
+    status: 'FACE_SELECTION', error: null, historyPast: [], historyFuture: [], generation: resetGeneration(state),
   })),
   setImageDimensions: (imageWidth, imageHeight) => set({ imageWidth, imageHeight }),
   setSourceFace: ({ url, name, crop, mask, confirmed = true, needsReview = false }) => set((state) => ({
@@ -277,6 +296,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
     sourceConfirmed: confirmed,
     sourceNeedsReview: needsReview,
     sonFace: dirtyFace(state.sonFace, { sourceUrl: url, sourceName: name }),
+    generation: resetGeneration(state),
   })),
   confirmSourceFace: () => set({ sourceConfirmed: true, sourceNeedsReview: false }),
   setFaces: (faces, badge) => set((state) => {
@@ -289,13 +309,13 @@ export const useEditorStore = create<EditorStore>((set) => ({
       sonFace: selectedFace ? createSonFace(selectedFace, state.sourceFaceUrl, state.sourceFaceName) : { ...state.sonFace, targetFaceId: null, warpedPreviewUrl: null },
       symmetryEnabled: selectedFace ? Math.abs(selectedFace.pose?.yaw ?? 0) < 18 : true,
       modelBadge: badge ?? (faces.some((face) => face.source === 'mock') ? 'mock-data' : faces.some((face) => face.source === 'external-baseline') ? 'production-detector' : 'custom-detector'),
-      status: faces.length > 0 ? 'READY_TO_GENERATE' : 'FACE_SELECTION', historyPast: [], historyFuture: [],
+      status: faces.length > 0 ? 'READY_TO_GENERATE' : 'FACE_SELECTION', historyPast: [], historyFuture: [], generation: resetGeneration(state),
     }
   }),
   selectFace: (faceId) => set((state) => {
     const face = state.faces.find((item) => item.id === faceId) ?? null
     const changed = faceId !== state.selectedFaceId
-    return { selectedFaceId: faceId, selectedLayer: faceId ? 'face' : null, sonFace: changed && face ? createSonFace(face, state.sourceFaceUrl, state.sourceFaceName) : state.sonFace, symmetryEnabled: face ? Math.abs(face.pose?.yaw ?? 0) < 18 : state.symmetryEnabled, status: faceId ? 'READY_TO_GENERATE' : 'FACE_SELECTION', historyPast: [], historyFuture: [] }
+    return { selectedFaceId: faceId, selectedLayer: faceId ? 'face' : null, sonFace: changed && face ? createSonFace(face, state.sourceFaceUrl, state.sourceFaceName) : state.sonFace, symmetryEnabled: face ? Math.abs(face.pose?.yaw ?? 0) < 18 : state.symmetryEnabled, status: faceId ? 'READY_TO_GENERATE' : 'FACE_SELECTION', historyPast: [], historyFuture: [], generation: changed ? resetGeneration(state) : state.generation }
   }),
   setFaceEditMode: (faceEditMode) => set({ faceEditMode, selectedLayer: 'face' }),
   setFitGroup: (fitGroup) => set({ fitGroup }),
@@ -306,9 +326,9 @@ export const useEditorStore = create<EditorStore>((set) => ({
   updateCaption: (caption) => set((state) => ({ caption: { ...state.caption, ...caption } })),
   updateSonFace: (changes) => set((state) => {
     if (Object.prototype.hasOwnProperty.call(changes, 'warpedPreviewUrl')) return { sonFace: { ...state.sonFace, ...changes } }
-    return { sonFace: dirtyFace(state.sonFace, changes) }
+    return { sonFace: dirtyFace(state.sonFace, changes), generation: resetGeneration(state) }
   }),
-  updateMeshPoint: (index, point) => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mesh: state.sonFace.mesh.map((item, itemIndex) => itemIndex === index ? { ...item, ...point } : item) }) })),
+  updateMeshPoint: (index, point) => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mesh: state.sonFace.mesh.map((item, itemIndex) => itemIndex === index ? { ...item, ...point } : item) }), generation: resetGeneration(state) })),
   updateSemanticHandle: (id, point) => set((state) => {
     const next = { ...state.sonFace.semanticHandles }
     const current = next[id].target
@@ -322,7 +342,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
       const pair = symmetricPair[id]
       if (pair && next[pair]) next[pair] = { ...next[pair], target: { x: clamp(1 - next[id].target.x), y: next[id].target.y } }
     }
-    return { sonFace: dirtyFace(state.sonFace, { semanticHandles: next }) }
+    return { sonFace: dirtyFace(state.sonFace, { semanticHandles: next }), generation: resetGeneration(state) }
   }),
   applyLiquifyStroke: (center, delta) => set((state) => {
     const { gridSize, offsets, brushSize, strength } = state.sonFace.liquify
@@ -334,39 +354,40 @@ export const useEditorStore = create<EditorStore>((set) => ({
       const influence = distance >= brushSize ? 0 : Math.exp(-((distance / Math.max(0.001, brushSize)) ** 2) * 2.4)
       return { x: Math.max(-0.35, Math.min(0.35, offset.x + delta.x * strength * influence)), y: Math.max(-0.35, Math.min(0.35, offset.y + delta.y * strength * influence)) }
     })
-    return { sonFace: dirtyFace(state.sonFace, { liquify: { ...state.sonFace.liquify, offsets: nextOffsets } }) }
+    return { sonFace: dirtyFace(state.sonFace, { liquify: { ...state.sonFace.liquify, offsets: nextOffsets } }), generation: resetGeneration(state) }
   }),
-  updateMaskPoint: (index, point) => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mask: state.sonFace.mask.map((item, itemIndex) => itemIndex === index ? { x: clamp(point.x), y: clamp(point.y) } : item) }) })),
+  updateMaskPoint: (index, point) => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mask: state.sonFace.mask.map((item, itemIndex) => itemIndex === index ? { x: clamp(point.x), y: clamp(point.y) } : item) }), generation: resetGeneration(state) })),
   updateDistortCorner: (index, point) => set((state) => ({
     sonFace: dirtyFace(state.sonFace, {
       distortCorners: state.sonFace.distortCorners.map((item, itemIndex) => itemIndex === index ? { x: clamp(point.x, -0.35, 1.35), y: clamp(point.y, -0.35, 1.35) } : item) as SonFaceLayerState['distortCorners'],
     }),
+    generation: resetGeneration(state),
   })),
   autoFitFace: () => set((state) => {
     const face = state.faces.find((item) => item.id === state.selectedFaceId)
     if (!face) return state
-    return { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0, semanticHandles: targetSemanticHandles(face), distortCorners: createDefaultDistortCorners(), manuallyAdjusted: false }) }
+    return { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0, semanticHandles: targetSemanticHandles(face), distortCorners: createDefaultDistortCorners(), manuallyAdjusted: false }), generation: resetGeneration(state) }
   }),
   resetSonFaceShape: () => set((state) => {
     const face = state.faces.find((item) => item.id === state.selectedFaceId)
-    return { sonFace: dirtyFace(state.sonFace, { semanticHandles: targetSemanticHandles(face ?? null), mesh: createRegularMesh(), distortCorners: createDefaultDistortCorners(), manuallyAdjusted: false }) }
+    return { sonFace: dirtyFace(state.sonFace, { semanticHandles: targetSemanticHandles(face ?? null), mesh: createRegularMesh(), distortCorners: createDefaultDistortCorners(), manuallyAdjusted: false }), generation: resetGeneration(state) }
   }),
   resetSonFacePosition: () => set((state) => {
     const face = state.faces.find((item) => item.id === state.selectedFaceId)
-    return face ? { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0, distortCorners: createDefaultDistortCorners() }) } : state
+    return face ? { sonFace: dirtyFace(state.sonFace, { x: face.bbox.x, y: face.bbox.y, width: face.bbox.width, height: face.bbox.height, rotation: 0, distortCorners: createDefaultDistortCorners() }), generation: resetGeneration(state) } : state
   }),
-  resetSonFaceMask: () => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mask: createDefaultMask() }) })),
-  resetLiquify: () => set((state) => ({ sonFace: dirtyFace(state.sonFace, { liquify: { ...createDefaultLiquify(), brushSize: state.sonFace.liquify.brushSize, strength: state.sonFace.liquify.strength } }) })),
+  resetSonFaceMask: () => set((state) => ({ sonFace: dirtyFace(state.sonFace, { mask: createDefaultMask() }), generation: resetGeneration(state) })),
+  resetLiquify: () => set((state) => ({ sonFace: dirtyFace(state.sonFace, { liquify: { ...createDefaultLiquify(), brushSize: state.sonFace.liquify.brushSize, strength: state.sonFace.liquify.strength } }), generation: resetGeneration(state) })),
   recordFaceEditHistory: () => set((state) => ({ historyPast: [...state.historyPast.slice(-39), snapshot(state)], historyFuture: [] })),
   undo: () => set((state) => {
     const previous = state.historyPast.at(-1)
     if (!previous) return state
-    return { sonFace: { ...previous.sonFace, warpRevision: state.sonFace.warpRevision + 1, warpedPreviewUrl: null }, caption: previous.caption, historyPast: state.historyPast.slice(0, -1), historyFuture: [snapshot(state), ...state.historyFuture] }
+    return { sonFace: { ...previous.sonFace, warpRevision: state.sonFace.warpRevision + 1, warpedPreviewUrl: null }, caption: previous.caption, historyPast: state.historyPast.slice(0, -1), historyFuture: [snapshot(state), ...state.historyFuture], generation: resetGeneration(state) }
   }),
   redo: () => set((state) => {
     const next = state.historyFuture[0]
     if (!next) return state
-    return { sonFace: { ...next.sonFace, warpRevision: state.sonFace.warpRevision + 1, warpedPreviewUrl: null }, caption: next.caption, historyPast: [...state.historyPast, snapshot(state)], historyFuture: state.historyFuture.slice(1) }
+    return { sonFace: { ...next.sonFace, warpRevision: state.sonFace.warpRevision + 1, warpedPreviewUrl: null }, caption: next.caption, historyPast: [...state.historyPast, snapshot(state)], historyFuture: state.historyFuture.slice(1), generation: resetGeneration(state) }
   }),
   setWarpedPreview: (url, revision) => set((state) => state.sonFace.warpRevision === revision ? { sonFace: { ...state.sonFace, warpedPreviewUrl: url } } : state),
   setViewport: (viewport) => set((state) => ({ viewport: { ...state.viewport, ...viewport } })),
@@ -374,5 +395,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
   setPreviewUrl: (previewUrl) => set({ previewUrl }),
   setFinalUrl: (finalUrl) => set({ finalUrl }),
   setExportModalOpen: (exportModalOpen) => set({ exportModalOpen }),
+  setGenerationState: (changes) => set((state) => ({ generation: { ...state.generation, ...changes } })),
+  acknowledgeGenerationNotice: () => set((state) => ({ generation: { ...state.generation, noticeAcknowledged: true } })),
   reset: () => set({ ...initialState }),
 }))

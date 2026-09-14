@@ -29,10 +29,11 @@ export async function renderComposition(state: EditorState, options?: ExportOpti
   const context = canvas.getContext('2d')
   if (!context) throw new Error('Your browser could not create an export canvas.')
   const original = await loadImage(state.originalUrl)
-  context.drawImage(original, 0, 0, output.width, output.height)
+  const aiResult = state.generation.active && state.generation.resultUrl ? await loadImage(state.generation.resultUrl) : null
+  context.drawImage(aiResult ?? original, 0, 0, output.width, output.height)
 
   const layer = state.sonFace
-  if (layer.width > 0 && layer.height > 0 && state.sourceFaceUrl && state.sourceConfirmed) {
+  if (!aiResult && layer.width > 0 && layer.height > 0 && state.sourceFaceUrl && state.sourceConfirmed) {
     const layerWidth = Math.max(2, Math.round(layer.width * output.width))
     const layerHeight = Math.max(2, Math.round(layer.height * output.height))
     const faceUrl = await renderFaceLayer(state.sourceFaceUrl, state.sourceCrop, state.sourceMask, layer.distortCorners, layerWidth, layerHeight)
@@ -58,6 +59,19 @@ export async function renderComposition(state: EditorState, options?: ExportOpti
     context.rotate((state.caption.rotation * Math.PI) / 180)
     context.strokeText(state.caption.text, 0, 0)
     context.fillText(state.caption.text, 0, 0)
+    context.restore()
+  }
+  if (aiResult) {
+    context.save()
+    context.font = `600 ${Math.max(11, 16 * (output.width / 960))}px Inter, Arial, sans-serif`
+    context.textBaseline = 'bottom'
+    context.textAlign = 'right'
+    context.fillStyle = 'rgba(255, 255, 255, 0.82)'
+    context.strokeStyle = 'rgba(0, 0, 0, 0.72)'
+    context.lineWidth = Math.max(2, 4 * (output.width / 960))
+    const label = 'AI-generated parody'
+    context.strokeText(label, output.width - 18, output.height - 14)
+    context.fillText(label, output.width - 18, output.height - 14)
     context.restore()
   }
   return canvasBlob(canvas, output.format, output.quality)
