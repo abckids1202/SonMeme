@@ -6,9 +6,9 @@ const imagePath = path.resolve('src/assets/anthony-mackie-face.png')
 
 test('opens the focused AI generator', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Make any image a Sonify meme' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Turn someone into son 😭' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Browse files' })).toBeVisible()
-  await expect(page.getByText('Drop, browse or paste an image')).toBeVisible()
+  await expect(page.getByText('Drop or paste an image, i guess bro')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ideal' })).not.toBeVisible()
 })
 

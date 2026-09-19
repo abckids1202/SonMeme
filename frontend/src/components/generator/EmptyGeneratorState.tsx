@@ -5,8 +5,8 @@ export function EmptyGeneratorState() {
     <main className="empty-generator">
       <section className="empty-card">
         <p className="eyebrow">Sonify</p>
-        <h1>Make any image a Sonify meme</h1>
-        <p className="empty-copy">Drop, browse or paste an image. AI blends the Son face into the scene.</p>
+        <h1>Turn someone into son 😭</h1>
+        <p className="empty-copy">Drop or paste an image, i guess bro</p>
         <ImageDropzone variant="hero" />
       </section>
     </main>
