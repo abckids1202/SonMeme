@@ -1,20 +1,17 @@
 # Sonify
 
-Sonify is a focused still-image parody tool for placing the bundled Anthony Mackie `son 😭` face into people, objects, drawings, and scenes. Upload a target once, let the local detector choose a face, adjust the face layer with familiar canvas controls, and export the composition at the original resolution.
+Sonify is a focused still-image parody tool for integrating the bundled Anthony Mackie `son 😭` face into people, objects, drawings, and scenes. Upload a target once, let the OpenAI vision and image-edit pipeline create the finished scene, adjust only the caption, and export the result.
 
-The project is intentionally staged. This commit does not claim to include trained custom face models yet. The app reports unavailable checkpoints honestly until later milestones add the detector, landmarks, classical warp pipeline, and neural transformer.
+The main product is local-first from the browser's point of view: the OpenAI key stays in FastAPI, uploaded images are processed in memory, and the browser receives only the generated image.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  UI["React editor"] --> API["FastAPI /api/v1"]
-  API --> Registry["ModelRegistry"]
-  Registry --> PT["PyTorch runtime"]
-  Registry --> OX["ONNX runtime"]
-  API --> Temp["Temporary image store"]
-  Train["ml training pipelines"] --> Models["models/pytorch and models/onnx"]
-  Models --> Registry
+  UI["React focused generator"] --> API["FastAPI /api/v1/sonify"]
+  API --> Vision["OpenAI vision analysis"]
+  API --> Image["OpenAI image edit"]
+  Image --> UI
 ```
 
 ## Repository Structure
@@ -46,6 +43,8 @@ python -m pip install -r requirements.txt -r requirements-dev.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+Before starting the backend, copy `.env.example` to `.env` and set `OPENAI_API_KEY`.
+
 Health check:
 
 ```bash
@@ -63,7 +62,7 @@ docker compose up --build
 
 ## Environment
 
-Copy `.env.example` to `.env` for local overrides. `MODEL_DEVICE=auto` chooses CUDA when PyTorch can see it and falls back to CPU. `MODEL_RUNTIME` accepts `pytorch` and `onnx`.
+Copy `.env.example` to `.env` for local overrides. `OPENAI_API_KEY` is required for the main generator and must only exist in the backend `.env`. The default vision model is `gpt-5.6-sol`; the default image model is `gpt-image-2`.
 
 ## Training Roadmap
 
@@ -76,13 +75,11 @@ Copy `.env.example` to `.env` for local overrides. `MODEL_DEVICE=auto` chooses C
 
 Sonify is for AI-edited parody images only. It handles still images, does not build voice cloning or realtime video replacement, and must not retain uploads beyond the configured TTL. Future public deployments should add provenance marking.
 
-## Editor Behavior
+## Generator Behavior
 
-The main editor uses the backend for face detection and optional Instant AI generation. Face cropping, transparent masking, proportional resize, rotation, four-corner distortion, captioning, deterministic preview, and export run in the browser through one shared compositor. Instant AI sends the active target and source images to a server-configured provider only after the user presses the button, then returns a reviewable scene-preserving render. When automatic detection fails, draw a rectangular target and continue editing normally.
+The main flow is: upload once, analyze the scene, integrate the Son face, edit the caption, and download. The vision pass classifies the image as a face, multiple faces, object, or unknown and supplies scene context to the image-edit pass. The image-edit request includes the uploaded target and the bundled source face, asks the model to preserve the scene and integrate the identity into its focal material, and explicitly keeps text out of the generated image. Caption text and placement are rendered in the browser and in the export from the same state.
 
-Instant AI is disabled by default. Copy `.env.example`, set `SONIFY_GENERATION_ENABLED=true`, and configure a server-side provider URL and key when you are ready. Use `SONIFY_GENERATION_PROVIDER=mock` for deterministic local provider tests without an external service.
-
-The trained FCOS detector remains available in Model Lab for experiments. The main editor uses the higher-accuracy local landmark detector first and MediaPipe as a portable fallback.
+The old detector, FCOS training pipeline, warp endpoint, and editor components remain in the repository for experiments and compatibility, but they are not part of the primary generator path.
 
 ## Detector Training Quick Start
 

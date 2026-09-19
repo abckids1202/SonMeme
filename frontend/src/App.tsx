@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AppShell } from './components/layout/AppShell'
 import { GeneratorPage } from './pages/GeneratorPage'
-import { IdealPage } from './pages/IdealPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import './App.css'
 
@@ -9,7 +8,6 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<GeneratorPage />} />
-      <Route path="/ideal" element={<IdealPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )

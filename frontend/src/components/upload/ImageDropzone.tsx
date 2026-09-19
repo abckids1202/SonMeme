@@ -4,7 +4,7 @@ import { Clipboard, ImageUp } from 'lucide-react'
 import { uploadFileSchema } from '../../schemas/upload'
 import { useEditorStore } from '../../stores/editorStore'
 import { createMockFaces } from '../../utils/mockDetection'
-import { detectImage } from '../../api/detection'
+import { generateSonify, sonifyImageUrl } from '../../api/sonify'
 
 type ImageDropzoneProps = {
   variant?: 'hero' | 'compact'
@@ -29,6 +29,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
   const setFaces = useEditorStore((state) => state.setFaces)
   const setStatus = useEditorStore((state) => state.setStatus)
   const setError = useEditorStore((state) => state.setError)
+  const setGenerationState = useEditorStore((state) => state.setGenerationState)
 
   const clearObjectUrl = useCallback(() => {
     if (activeObjectUrl) {
@@ -70,33 +71,31 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
           },
         })
 
-        if (import.meta.env.VITE_USE_MOCK_BACKEND === 'true') {
-          setFaces(createMockFaces(width, height), 'mock-data')
-        } else {
-          setImageLoadState('ready')
-          setFaces([], 'backend-disconnected')
-          setStatus('DETECTING')
-          try {
-            const detection = await detectImage(file, controller.signal)
+        setImageLoadState('ready')
+        setStatus('GENERATING_PREVIEW')
+        setGenerationState({ status: 'running', active: false, resultUrl: null, error: null, targetType: null, confidence: null, model: null })
+        try {
+          if (import.meta.env.VITE_USE_MOCK_BACKEND === 'true') {
+            setFaces(createMockFaces(width, height), 'mock-data')
+            setGenerationState({ status: 'complete', active: true, resultUrl: url, targetType: 'face', confidence: 0.99, model: 'mock' })
+          } else {
+            const result = await generateSonify(file, controller.signal)
             if (sequence !== uploadSequenceRef.current || controller.signal.aborted) return
-            setImageDimensions(detection.imageWidth, detection.imageHeight)
-            const source = detection.model.production ? 'external-baseline' as const : 'custom-detector' as const
-            setFaces(detection.faces.map((face) => ({
-              ...face,
-              landmarks: Object.fromEntries(Object.entries(face.landmarks ?? {}).map(([key, point]) => [key, { x: point[0], y: point[1] }])),
-              source,
-            })), detection.model.production ? 'production-detector' : 'custom-detector')
-          } catch (error) {
-            if (controller.signal.aborted || sequence !== uploadSequenceRef.current) return
-            setError(error instanceof Error ? error.message : 'Face detection failed. Is the backend running?')
+            setImageDimensions(result.width, result.height)
+            setGenerationState({ status: 'complete', active: true, resultUrl: sonifyImageUrl(result), targetType: result.analysis.target_type, confidence: result.analysis.confidence, model: result.model })
+            setStatus('PREVIEW_READY')
           }
+        } catch (error) {
+          if (controller.signal.aborted || sequence !== uploadSequenceRef.current) return
+          setGenerationState({ status: 'failed', active: false, error: error instanceof Error ? error.message : 'AI generation failed.' })
+          setError(error instanceof Error ? error.message : 'AI generation failed. Is the backend running?')
         }
       } catch {
         clearObjectUrl()
         setError('The image could not be decoded. Try another JPEG, PNG, or WebP file.')
       }
     },
-    [clearObjectUrl, setError, setFaces, setImageDimensions, setImageLoadState, setStatus, setUploadedImage],
+    [clearObjectUrl, setError, setFaces, setGenerationState, setImageDimensions, setImageLoadState, setStatus, setUploadedImage],
   )
 
   useEffect(() => {

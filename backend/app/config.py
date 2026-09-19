@@ -87,6 +87,12 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("SONIFY_GENERATION_TEMP_TTL_MINUTES", "GENERATION_TEMP_TTL_MINUTES"),
     )
 
+    openai_api_key: str | None = Field(None, validation_alias=AliasChoices("OPENAI_API_KEY", "SONIFY_OPENAI_API_KEY"))
+    openai_vision_model: str = Field("gpt-5.6-sol", validation_alias=AliasChoices("SONIFY_OPENAI_VISION_MODEL", "OPENAI_VISION_MODEL"))
+    openai_image_model: str = Field("gpt-image-2", validation_alias=AliasChoices("SONIFY_OPENAI_IMAGE_MODEL", "OPENAI_IMAGE_MODEL"))
+    openai_image_quality: str = Field("medium", validation_alias=AliasChoices("SONIFY_OPENAI_IMAGE_QUALITY", "OPENAI_IMAGE_QUALITY"))
+    openai_timeout_seconds: float = Field(180.0, gt=1, le=600, validation_alias=AliasChoices("SONIFY_OPENAI_TIMEOUT_SECONDS", "OPENAI_TIMEOUT_SECONDS"))
+
     @field_validator("frontend_origins", mode="before")
     @classmethod
     def parse_origins(cls, value: str | list[str]) -> list[str]:

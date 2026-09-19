@@ -22,6 +22,9 @@ export type GenerationState = {
   providerConfigured: boolean | null
   noticeAcknowledged: boolean
   error: string | null
+  targetType: 'face' | 'faces' | 'object' | 'unknown' | null
+  confidence: number | null
+  model: string | null
 }
 
 export type ImageLoadState = 'idle' | 'reading' | 'decoding' | 'ready' | 'error'

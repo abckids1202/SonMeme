@@ -188,6 +188,9 @@ const defaultGeneration: GenerationState = {
   providerConfigured: null,
   noticeAcknowledged: false,
   error: null,
+  targetType: null,
+  confidence: null,
+  model: null,
 }
 
 function dirtyFace(face: SonFaceLayerState, changes: Partial<SonFaceLayerState>): SonFaceLayerState {

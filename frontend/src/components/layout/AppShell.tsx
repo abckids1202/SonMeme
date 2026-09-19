@@ -1,18 +1,17 @@
 import { NavLink } from 'react-router-dom'
-import { ImagePlus, Lightbulb } from 'lucide-react'
+import { Download, ImagePlus } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 import { useEditorStore } from '../../stores/editorStore'
-import { ExportModal } from '../export/ExportModal'
+import { downloadComposition } from '../../utils/exportCompositionV2'
 
 const links = [
   { to: '/', label: 'Generator', icon: ImagePlus },
-  { to: '/ideal', label: 'Ideal', icon: Lightbulb },
 ]
 
 export function AppShell({ children }: PropsWithChildren) {
   const reset = useEditorStore((state) => state.reset)
   const hasImage = useEditorStore((state) => Boolean(state.originalUrl))
-  const setExportModalOpen = useEditorStore((state) => state.setExportModalOpen)
+  const canExport = useEditorStore((state) => state.generation.status === 'complete' && Boolean(state.generation.resultUrl))
 
   return (
     <div className="app-shell">
@@ -32,13 +31,12 @@ export function AppShell({ children }: PropsWithChildren) {
           <button type="button" className="button secondary compact-button" onClick={reset} disabled={!hasImage}>
             Reset
           </button>
-          <button type="button" className="button primary compact-button" disabled={!hasImage} onClick={() => setExportModalOpen(true)}>
-            Export
+          <button type="button" className="button primary compact-button" disabled={!canExport} onClick={() => void downloadComposition(useEditorStore.getState())}>
+            <Download size={16} aria-hidden="true" /> Export
           </button>
         </div>
       </header>
       {children}
-      <ExportModal />
     </div>
   )
 }
