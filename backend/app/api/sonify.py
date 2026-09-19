@@ -37,7 +37,8 @@ async def sonify(target_image: UploadFile = File(...)) -> SonifyResponse:
     except Exception as exc:
         raise HTTPException(status_code=400, detail="The uploaded image is not readable.") from exc
     try:
-        result, analysis, width, height = await service.generate(payload, target_image.content_type or "image/png")
+        mime = service.normalize_mime(payload, target_image.content_type)
+        result, analysis, width, height = await service.generate(payload, mime)
     except OpenAISonifyError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     return SonifyResponse(

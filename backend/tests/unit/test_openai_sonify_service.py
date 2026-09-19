@@ -1,3 +1,7 @@
+import io
+
+from PIL import Image
+
 from app.config import Settings
 from app.services.openai_sonify_service import OpenAISonifyService
 
@@ -24,6 +28,12 @@ def test_output_size_is_multiple_of_sixteen() -> None:
     assert width % 16 == 0
     assert height % 16 == 0
     assert abs((height / width) - (512 / 487)) < 0.05
+
+
+def test_normalize_mime_uses_decoded_format() -> None:
+    output = io.BytesIO()
+    Image.new("RGB", (2, 2), "blue").save(output, format="PNG")
+    assert OpenAISonifyService.normalize_mime(output.getvalue(), "application/octet-stream") == "image/png"
 
 
 def test_capabilities_require_server_key(monkeypatch) -> None:

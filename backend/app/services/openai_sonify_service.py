@@ -52,6 +52,16 @@ class OpenAISonifyService:
             raise OpenAISonifyError("The uploaded image could not be read.") from exc
 
     @staticmethod
+    def normalize_mime(payload: bytes, declared: str | None = None) -> str:
+        """Use the decoded file format instead of trusting a client MIME header."""
+        try:
+            with Image.open(io.BytesIO(payload)) as image:
+                formats = {"PNG": "image/png", "JPEG": "image/jpeg", "WEBP": "image/webp"}
+                return formats.get((image.format or "").upper(), "image/png")
+        except Exception:
+            return declared if declared in {"image/png", "image/jpeg", "image/webp"} else "image/png"
+
+    @staticmethod
     def _output_size(width: int, height: int) -> str:
         scale = min(1536 / max(width, height), 1.0)
         output_width = max(256, int(round(width * scale / 16)) * 16)
@@ -150,17 +160,20 @@ class OpenAISonifyService:
                 "everything outside the integrated area unchanged. Do not add words, captions, emojis, logos, borders, "
                 "watermarks, or extra people. Do not return a collage or split view. " + target_hint
             )
+            # The image-edit API accepts multiple images as an array. With multipart
+            # requests its current parser requires the bracketed array field name.
             files = [
-                ("image", ("target.png", target_bytes, target_mime or "image/png")),
-                ("image", ("anthony-mackie.png", source_bytes, "image/png")),
+                ("image[]", ("target.png", target_bytes, target_mime or "image/png")),
+                ("image[]", ("anthony-mackie.png", source_bytes, "image/png")),
             ]
             data = {
                 "model": self.settings.openai_image_model,
                 "prompt": prompt,
-                "size": self._output_size(width, height),
+                # Small uploads can fall below the model's minimum pixel budget;
+                # auto selects a valid output while retaining the target aspect.
+                "size": "auto",
                 "quality": self.settings.openai_image_quality,
                 "output_format": "png",
-                "input_fidelity": "high",
             }
             response = await self._request(client, "POST", "https://api.openai.com/v1/images/edits", files=files, data=data)
             payload = response.json()
