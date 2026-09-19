@@ -12,6 +12,7 @@ export function AppShell({ children }: PropsWithChildren) {
   const reset = useEditorStore((state) => state.reset)
   const hasImage = useEditorStore((state) => Boolean(state.originalUrl))
   const canExport = useEditorStore((state) => state.generation.status === 'complete' && Boolean(state.generation.resultUrl))
+  const exportFormat = useEditorStore((state) => state.exportFormat)
 
   return (
     <div className="app-shell">
@@ -31,8 +32,8 @@ export function AppShell({ children }: PropsWithChildren) {
           <button type="button" className="button secondary compact-button" onClick={reset} disabled={!hasImage}>
             Reset
           </button>
-          <button type="button" className="button primary compact-button" disabled={!canExport} onClick={() => void downloadComposition(useEditorStore.getState())}>
-            <Download size={16} aria-hidden="true" /> Export
+          <button type="button" className="button primary compact-button" disabled={!canExport} onClick={() => { const state = useEditorStore.getState(); void downloadComposition(state, { format: exportFormat, width: state.imageWidth, height: state.imageHeight, quality: 92 }) }}>
+            <Download size={16} aria-hidden="true" /> Export {exportFormat === 'jpeg' ? 'JPG' : 'PNG'}
           </button>
         </div>
       </header>

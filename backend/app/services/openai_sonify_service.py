@@ -153,12 +153,15 @@ class OpenAISonifyService:
             prompt = (
                 "Create a single finished Sonify parody image. Use the first image as the complete target scene and "
                 "the second image as the Anthony Mackie reference face. Preserve the target's composition, camera angle, "
-                "background, lighting direction, texture, and recognizable scene details. Seamlessly integrate the "
-                "reference identity into the most prominent person or, when there is no person, into the most visually "
-                "natural focal part of the object or scene. The result must look intentionally composited into the "
-                "material: match perspective, scale, color, shadows, reflections, surface texture, and focus. Keep "
-                "everything outside the integrated area unchanged. Do not add words, captions, emojis, logos, borders, "
-                "watermarks, or extra people. Do not return a collage or split view. " + target_hint
+                "background, lighting direction, texture, and recognizable scene details. Apply a direct face-placement "
+                "meme: keep the Anthony Mackie Son identity, facial proportions, expression, eyes, nose, mouth, and "
+                "skin detail recognizable, and place that face only over the intended target face area. Blend the edges "
+                "enough to look like a face placed onto the subject, but do not transform the whole target into the "
+                "source style and do not let the source face take over the body, clothing, or background. For an object "
+                "or scene with no person, place the Son face on the most obvious face-like focal area while preserving "
+                "the object's original material and composition. Keep everything outside that face area unchanged. Do "
+                "not add words, captions, emojis, logos, borders, watermarks, or extra people. Do not return a collage "
+                "or split view. " + target_hint
             )
             # The image-edit API accepts multiple images as an array. With multipart
             # requests its current parser requires the bracketed array field name.

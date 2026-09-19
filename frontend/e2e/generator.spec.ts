@@ -37,9 +37,11 @@ test('uploads once, receives one AI result, edits the caption, and exposes expor
   const caption = page.getByLabel('Caption text')
   await caption.fill('SONami 😭')
   await expect(caption).toHaveValue('SONami 😭')
+  await page.getByLabel('Caption font').selectOption('arial')
+  await page.getByLabel('Export format').selectOption('jpeg')
   const downloadPromise = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Download PNG' }).click()
+  await page.getByRole('button', { name: 'Download JPG' }).click()
   const download = await downloadPromise
-  expect(download.suggestedFilename()).toBe('anthony-mackie-face-son.png')
+  expect(download.suggestedFilename()).toBe('anthony-mackie-face-son.jpg')
   expect(sonifyCalls).toBe(1)
 })

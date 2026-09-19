@@ -74,6 +74,7 @@ export type DetectedFace = {
 
 export type CaptionState = {
   text: string
+  fontFamily: CaptionFont
   x: number
   y: number
   width: number
@@ -81,6 +82,9 @@ export type CaptionState = {
   rotation: number
   visible: boolean
 }
+
+export type CaptionFont = 'impact' | 'arial' | 'comic' | 'sans'
+export type ExportFormat = 'png' | 'jpeg'
 
 export type MeshPoint = {
   sourceX: number
@@ -169,6 +173,7 @@ export type EditorState = {
   modelBadge: 'backend-disconnected' | 'mock-data' | 'external-baseline' | 'custom-detector' | 'production-detector' | 'manual'
   selectedLayer: 'face' | 'caption' | null
   exportModalOpen: boolean
+  exportFormat: ExportFormat
   status: EditorStatus
   error: string | null
   historyPast: FaceEditSnapshot[]

@@ -1,6 +1,7 @@
 import type { EditorState } from '../types/editor'
+import { captionFontFamily } from './captionStyle'
 
-export type ExportFormat = 'png' | 'jpeg' | 'webp'
+export type ExportFormat = 'png' | 'jpeg'
 export type ExportOptions = { format: ExportFormat; width: number; height: number; quality: number }
 
 function loadImage(url: string): Promise<HTMLImageElement> {
@@ -13,7 +14,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
 }
 
 function canvasBlob(canvas: HTMLCanvasElement, format: ExportFormat, quality: number): Promise<Blob> {
-  const mime = format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png'
+  const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png'
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Could not create the exported image.')), mime, quality / 100))
 }
 
@@ -31,7 +32,7 @@ export async function renderComposition(state: EditorState, options?: ExportOpti
 
   if (state.caption.visible && state.caption.text) {
     context.save()
-    context.font = `700 ${Math.max(16, 64 * (output.width / 960) * state.caption.scale)}px Impact, Arial Black, sans-serif`
+    context.font = `700 ${Math.max(16, 64 * (output.width / 960) * state.caption.scale)}px ${captionFontFamily(state.caption.fontFamily)}`
     context.textBaseline = 'top'
     context.lineJoin = 'round'
     context.lineWidth = Math.max(3, 7 * (output.width / 960))
@@ -52,7 +53,8 @@ export async function downloadComposition(state: EditorState, options?: ExportOp
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = `${state.imageFile?.name.replace(/\.[^.]+$/, '') ?? 'sonify'}-son.png`
+  const extension = output.format === 'jpeg' ? 'jpg' : 'png'
+  anchor.download = `${state.imageFile?.name.replace(/\.[^.]+$/, '') ?? 'sonify'}-son.${extension}`
   document.body.appendChild(anchor)
   anchor.click()
   anchor.remove()

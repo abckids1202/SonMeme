@@ -6,6 +6,7 @@ import type {
   DetectedFace,
   EditorState,
   EditorStatus,
+  ExportFormat,
   FaceEditMode,
   FaceEditSnapshot,
   FitGroup,
@@ -43,6 +44,7 @@ const canonicalTarget: Record<SemanticHandleId, NormalizedPoint> = {
 
 const defaultCaption: CaptionState = {
   text: 'son 😭',
+  fontFamily: 'impact',
   x: 0.08,
   y: 0.12,
   width: 0.34,
@@ -253,6 +255,7 @@ type EditorActions = {
   setPreviewUrl: (url: string | null) => void
   setFinalUrl: (url: string | null) => void
   setExportModalOpen: (open: boolean) => void
+  setExportFormat: (format: ExportFormat) => void
   setGenerationState: (changes: Partial<GenerationState>) => void
   acknowledgeGenerationNotice: () => void
   reset: () => void
@@ -268,7 +271,7 @@ const initialState: EditorState = {
   faceEditMode: 'move', fitGroup: 'individual', symmetryEnabled: true, manualFitMode: 'quick', activeTool: 'select',
   caption: defaultCaption, sonFace: emptySonFace, viewport: defaultViewport,
   modelBadge: import.meta.env.VITE_USE_MOCK_BACKEND === 'true' ? 'mock-data' : 'backend-disconnected',
-  selectedLayer: null, exportModalOpen: false, status: 'EMPTY', error: null,
+  selectedLayer: null, exportModalOpen: false, exportFormat: 'png' as ExportFormat, status: 'EMPTY', error: null,
   historyPast: [], historyFuture: [],
   generation: defaultGeneration,
 }
@@ -398,6 +401,7 @@ export const useEditorStore = create<EditorStore>((set) => ({
   setPreviewUrl: (previewUrl) => set({ previewUrl }),
   setFinalUrl: (finalUrl) => set({ finalUrl }),
   setExportModalOpen: (exportModalOpen) => set({ exportModalOpen }),
+  setExportFormat: (exportFormat) => set({ exportFormat }),
   setGenerationState: (changes) => set((state) => ({ generation: { ...state.generation, ...changes } })),
   acknowledgeGenerationNotice: () => set((state) => ({ generation: { ...state.generation, noticeAcknowledged: true } })),
   reset: () => set({ ...initialState }),

@@ -1,6 +1,7 @@
 import { useRef, type PointerEvent } from 'react'
 import { ImageUp, LoaderCircle, Sparkles } from 'lucide-react'
 import { useEditorStore } from '../../stores/editorStore'
+import { captionFontFamily } from '../../utils/captionStyle'
 
 function clamp(value: number, minimum: number, maximum: number) { return Math.max(minimum, Math.min(maximum, value)) }
 
@@ -25,7 +26,7 @@ export function GeneratedStage() {
     <div ref={stageRef} className="generated-stage" onPointerMove={moveCaption} onPointerUp={() => { draggingRef.current = false }} onPointerLeave={() => { draggingRef.current = false }}>
       {imageUrl ? <img src={imageUrl} alt="Sonify generated preview" className="generated-image" /> : <div className="stage-empty"><ImageUp size={34} /><span>Upload an image to begin</span></div>}
       {isWorking ? <div className="generation-overlay"><LoaderCircle className="spin" size={30} /><strong>AI is blending the scene</strong><span>It may take a moment.</span></div> : null}
-      {caption.visible && caption.text ? <div className="caption-layer" style={{ left: `${caption.x * 100}%`, top: `${caption.y * 100}%`, transform: `rotate(${caption.rotation}deg) scale(${caption.scale})` }} onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); draggingRef.current = true }} role="button" tabIndex={0} aria-label="Drag caption">{caption.text}</div> : null}
+      {caption.visible && caption.text ? <div className="caption-layer" style={{ left: `${caption.x * 100}%`, top: `${caption.y * 100}%`, fontFamily: captionFontFamily(caption.fontFamily), transform: `rotate(${caption.rotation}deg) scale(${caption.scale})` }} onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); draggingRef.current = true }} role="button" tabIndex={0} aria-label="Drag caption">{caption.text}</div> : null}
     </div>
     <p className="stage-note">Drag the caption directly on the image.</p>
   </section>

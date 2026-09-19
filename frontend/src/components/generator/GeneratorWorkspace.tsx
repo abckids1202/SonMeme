@@ -11,6 +11,7 @@ export function GeneratorWorkspace() {
   const generation = useEditorStore((state) => state.generation)
   const status = useEditorStore((state) => state.status)
   const error = useEditorStore((state) => state.error)
+  const exportFormat = useEditorStore((state) => state.exportFormat)
   const isWorking = generation.status === 'running' || status === 'GENERATING_PREVIEW'
   const canExport = generation.status === 'complete' && Boolean(generation.resultUrl)
 
@@ -31,7 +32,7 @@ export function GeneratorWorkspace() {
         <GeneratedStage />
         <aside className="caption-sidebar" aria-label="Caption controls">
           <CaptionPanel />
-          <div className="sidebar-export"><button type="button" className="button primary full-width" disabled={!canExport || isWorking} onClick={() => void downloadComposition(useEditorStore.getState())}><Download size={17} aria-hidden="true" /> Download PNG</button><p>Generated images are returned without text so your caption stays crisp and editable.</p></div>
+          <div className="sidebar-export"><button type="button" className="button primary full-width" disabled={!canExport || isWorking} onClick={() => { const state = useEditorStore.getState(); void downloadComposition(state, { format: exportFormat, width: state.imageWidth, height: state.imageHeight, quality: 92 }) }}><Download size={17} aria-hidden="true" /> Download {exportFormat === 'jpeg' ? 'JPG' : 'PNG'}</button><p>Generated images are returned without text so your caption stays crisp and editable.</p></div>
         </aside>
       </div>
     </main>
