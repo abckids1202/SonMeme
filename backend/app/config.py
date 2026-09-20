@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import AliasChoices, Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -24,7 +24,9 @@ class Settings(BaseSettings):
     app_host: str = "0.0.0.0"
     app_port: int = 8000
 
-    frontend_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    # Render commonly supplies one plain URL. NoDecode lets the validator below
+    # accept that value as well as comma-separated origins without JSON errors.
+    frontend_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     model_device: Literal["auto", "cpu", "cuda"] = "auto"
     model_runtime: Literal["pytorch", "onnx"] = "pytorch"
