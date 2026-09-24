@@ -18,11 +18,13 @@ import type {
   SemanticHandleId,
   SemanticHandles,
   SonFaceLayerState,
+  SourceFaceVariant,
   ViewportState,
   GenerationState,
 } from '../types/editor'
 
 const anthonyFaceUrl = '/source-faces/anthony-front.png'
+const chubbyFaceUrl = '/source-faces/anthony-chubby.png'
 const semanticIds: SemanticHandleId[] = [
   'foreheadCenter', 'leftTemple', 'rightTemple', 'leftEye', 'rightEye', 'nose',
   'leftMouth', 'rightMouth', 'leftJaw', 'rightJaw', 'chin',
@@ -225,6 +227,7 @@ type EditorActions = {
   setUploadedImage: (input: { url: string; width: number; height: number; file: ImageFileMeta }) => void
   setImageDimensions: (width: number, height: number) => void
   setSourceFace: (input: { url: string; name: string; crop?: { x: number; y: number; width: number; height: number }; mask?: NormalizedPoint[]; confirmed?: boolean; needsReview?: boolean }) => void
+  setSourceFaceVariant: (variant: SourceFaceVariant) => void
   confirmSourceFace: () => void
   setFaces: (faces: DetectedFace[], badge?: EditorState['modelBadge']) => void
   selectFace: (faceId: string | null) => void
@@ -265,7 +268,7 @@ export type EditorStore = EditorState & EditorActions
 
 const initialState: EditorState = {
   imageId: null, originalUrl: null, previewUrl: null, finalUrl: null,
-  imageWidth: 0, imageHeight: 0, sourceFaceUrl: anthonyFaceUrl, sourceFaceName: 'Anthony Mackie',
+  imageWidth: 0, imageHeight: 0, sourceFaceUrl: anthonyFaceUrl, sourceFaceName: 'Anthony Mackie', sourceFaceVariant: 'classic',
   sourceCrop: { x: 0, y: 0, width: 1, height: 1 }, sourceMask: createDefaultMask(), sourceConfirmed: true, sourceNeedsReview: false,
   imageLoadState: 'idle', imageFile: null, faces: [], selectedFaceId: null,
   faceEditMode: 'move', fitGroup: 'individual', symmetryEnabled: true, manualFitMode: 'quick', activeTool: 'select',
@@ -304,6 +307,21 @@ export const useEditorStore = create<EditorStore>((set) => ({
     sonFace: dirtyFace(state.sonFace, { sourceUrl: url, sourceName: name }),
     generation: resetGeneration(state),
   })),
+  setSourceFaceVariant: (sourceFaceVariant) => set((state) => {
+    const url = sourceFaceVariant === 'chubby' ? chubbyFaceUrl : anthonyFaceUrl
+    const name = sourceFaceVariant === 'chubby' ? 'Chubby Son' : 'Anthony Mackie'
+    return {
+      sourceFaceVariant,
+      sourceFaceUrl: url,
+      sourceFaceName: name,
+      sourceCrop: { x: 0, y: 0, width: 1, height: 1 },
+      sourceMask: createDefaultMask(),
+      sourceConfirmed: true,
+      sourceNeedsReview: false,
+      sonFace: dirtyFace(state.sonFace, { sourceUrl: url, sourceName: name }),
+      generation: resetGeneration(state),
+    }
+  }),
   confirmSourceFace: () => set({ sourceConfirmed: true, sourceNeedsReview: false }),
   setFaces: (faces, badge) => set((state) => {
     const selectedFaceId = faces.length > 0

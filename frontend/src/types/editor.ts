@@ -12,6 +12,7 @@ export type EditorStatus =
 
 export type GenerationPreset = 'natural' | 'scene-blend' | 'meme'
 export type GenerationStatus = 'idle' | 'checking' | 'queued' | 'running' | 'complete' | 'failed' | 'cancelled'
+export type SourceFaceVariant = 'classic' | 'chubby'
 
 export type GenerationState = {
   status: GenerationStatus
@@ -154,6 +155,7 @@ export type EditorState = {
   imageHeight: number
   sourceFaceUrl: string | null
   sourceFaceName: string | null
+  sourceFaceVariant: SourceFaceVariant
   sourceCrop: NormalizedBox
   sourceMask: NormalizedPoint[]
   sourceConfirmed: boolean

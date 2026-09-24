@@ -35,8 +35,9 @@ class OpenAISonifyService:
             "message": "OpenAI image generation is ready." if self.configured else "Add OPENAI_API_KEY to the backend environment.",
         }
 
-    def _source_path(self) -> Path:
-        return Path(__file__).resolve().parents[3] / "frontend" / "public" / "source-faces" / "anthony-front.png"
+    def _source_path(self, source_variant: str = "classic") -> Path:
+        filename = "anthony-chubby.png" if source_variant == "chubby" else "anthony-front.png"
+        return Path(__file__).resolve().parents[3] / "frontend" / "public" / "source-faces" / filename
 
     @staticmethod
     def _data_url(payload: bytes, mime: str = "image/png") -> str:
@@ -133,12 +134,12 @@ class OpenAISonifyService:
         response = await self._request(client, "POST", "https://api.openai.com/v1/responses", json=body)
         return self._parse_analysis(self._extract_text(response.json()))
 
-    async def generate(self, target_bytes: bytes, target_mime: str) -> tuple[bytes, SonifyAnalysis, int, int]:
+    async def generate(self, target_bytes: bytes, target_mime: str, source_variant: str = "classic") -> tuple[bytes, SonifyAnalysis, int, int]:
         if not self.configured:
             raise OpenAISonifyError(self.capabilities()["message"])
-        source_path = self._source_path()
+        source_path = self._source_path(source_variant)
         if not source_path.exists():
-            raise OpenAISonifyError("The bundled Anthony Mackie source face is missing.")
+            raise OpenAISonifyError("The selected Son source face is missing from the backend deployment.")
         source_bytes = source_path.read_bytes()
         width, height = self._image_size(target_bytes)
         headers = {"Authorization": f"Bearer {self.settings.openai_api_key}"}
@@ -152,7 +153,7 @@ class OpenAISonifyService:
             )
             prompt = (
                 "Create a single finished Sonify parody image. Use the first image as the complete target scene and "
-                "the second image as the Anthony Mackie reference face. Preserve the target's composition, camera angle, "
+                "the second image as the selected Anthony Mackie Son reference face. Preserve the target's composition, camera angle, "
                 "background, lighting direction, texture, and recognizable scene details. Apply a direct face-placement "
                 "meme: keep the Anthony Mackie Son identity, facial proportions, expression, eyes, nose, mouth, and "
                 "skin detail recognizable, and place that face only over the intended target face area. Blend the edges "

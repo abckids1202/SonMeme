@@ -14,9 +14,10 @@ export type SonifyResult = {
   model: string
 }
 
-export async function generateSonify(file: File, signal?: AbortSignal): Promise<SonifyResult> {
+export async function generateSonify(file: File, sourceVariant: 'classic' | 'chubby' = 'classic', signal?: AbortSignal): Promise<SonifyResult> {
   const form = new FormData()
   form.append('target_image', file)
+  form.append('source_variant', sourceVariant)
   const response = await fetch(`${API_BASE_URL}/sonify`, { method: 'POST', body: form, signal })
   if (!response.ok) {
     let message = `Generation failed with ${response.status}.`

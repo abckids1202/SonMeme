@@ -30,6 +30,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
   const setStatus = useEditorStore((state) => state.setStatus)
   const setError = useEditorStore((state) => state.setError)
   const setGenerationState = useEditorStore((state) => state.setGenerationState)
+  const sourceFaceVariant = useEditorStore((state) => state.sourceFaceVariant)
 
   const clearObjectUrl = useCallback(() => {
     if (activeObjectUrl) {
@@ -79,7 +80,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
             setFaces(createMockFaces(width, height), 'mock-data')
             setGenerationState({ status: 'complete', active: true, resultUrl: url, targetType: 'face', confidence: 0.99, model: 'mock' })
           } else {
-            const result = await generateSonify(file, controller.signal)
+            const result = await generateSonify(file, sourceFaceVariant, controller.signal)
             if (sequence !== uploadSequenceRef.current || controller.signal.aborted) return
             setImageDimensions(result.width, result.height)
             setGenerationState({ status: 'complete', active: true, resultUrl: sonifyImageUrl(result), targetType: result.analysis.target_type, confidence: result.analysis.confidence, model: result.model })
@@ -95,7 +96,7 @@ export function ImageDropzone({ variant = 'compact' }: ImageDropzoneProps) {
         setError('The image could not be decoded. Try another JPEG, PNG, or WebP file.')
       }
     },
-    [clearObjectUrl, setError, setFaces, setGenerationState, setImageDimensions, setImageLoadState, setStatus, setUploadedImage],
+    [clearObjectUrl, setError, setFaces, setGenerationState, setImageDimensions, setImageLoadState, setStatus, setUploadedImage, sourceFaceVariant],
   )
 
   useEffect(() => {

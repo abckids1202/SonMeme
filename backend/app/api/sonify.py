@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import base64
 import io
+from typing import Literal
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from PIL import Image
 
 from app.config import get_settings
@@ -23,7 +24,10 @@ async def capabilities() -> dict:
 
 
 @router.post("", response_model=SonifyResponse)
-async def sonify(target_image: UploadFile = File(...)) -> SonifyResponse:
+async def sonify(
+    target_image: UploadFile = File(...),
+    source_variant: Literal['classic', 'chubby'] = Form('classic'),
+) -> SonifyResponse:
     settings = get_settings()
     service = _service()
     if not service.configured:
@@ -38,7 +42,7 @@ async def sonify(target_image: UploadFile = File(...)) -> SonifyResponse:
         raise HTTPException(status_code=400, detail="The uploaded image is not readable.") from exc
     try:
         mime = service.normalize_mime(payload, target_image.content_type)
-        result, analysis, width, height = await service.generate(payload, mime)
+        result, analysis, width, height = await service.generate(payload, mime, source_variant)
     except OpenAISonifyError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     return SonifyResponse(

@@ -1065,6 +1065,89 @@ h2 {
 .generation-overlay span, .stage-note, .sidebar-export p { color: #aeb0ba; font-size: 0.84rem; }
 .spin { animation: sonify-spin 1s linear infinite; color: #ffd166; }
 @keyframes sonify-spin { to { transform: rotate(360deg); } }
+
+.source-face-picker {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 14px;
+}
+
+.source-face-picker-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: #f5f7fb;
+  font-size: 14px;
+}
+
+.source-face-picker-heading span {
+  color: #a9afbd;
+  font-size: 12px;
+}
+
+.source-face-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.source-face-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #393d48;
+  border-radius: 8px;
+  background: #15171d;
+  color: #f5f7fb;
+  text-align: left;
+  cursor: pointer;
+}
+
+.source-face-option:hover,
+.source-face-option.active {
+  border-color: #ffd166;
+  background: #211f1a;
+}
+
+.source-face-option img {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.source-face-option span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.source-face-option strong,
+.source-face-option small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-face-option small {
+  color: #a9afbd;
+  font-size: 11px;
+}
+
+@media (max-width: 520px) {
+  .source-face-picker-heading {
+    display: grid;
+    gap: 3px;
+  }
+
+  .source-face-options {
+    grid-template-columns: 1fr;
+  }
+}
 .caption-layer { position: absolute; z-index: 2; max-width: 82%; padding: 4px 8px; color: #fff; font-family: Impact, "Arial Black", sans-serif; font-size: 42px; line-height: 1; white-space: pre-wrap; overflow-wrap: anywhere; text-shadow: 3px 3px 0 #050505, -1px -1px 0 #050505; cursor: grab; transform-origin: top left; user-select: none; touch-action: none; }
 .caption-layer:active { cursor: grabbing; }
 .stage-note { margin: 12px 0 0; }
